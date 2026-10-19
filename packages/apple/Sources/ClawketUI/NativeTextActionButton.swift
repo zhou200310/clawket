@@ -45,6 +45,7 @@ public struct NativeTextActionButton: UIViewRepresentable {
         button.accessibilityLabel = title
         button.invalidateIntrinsicContentSize()
     }
+    @available(iOS 16.0, macOS 13.0, *)
     public func sizeThatFits(_ proposal: ProposedViewSize, uiView: UIButton, context: Context) -> CGSize? {
         let proposed = proposal.width.flatMap { $0.isFinite && $0 > 0 ? $0 : nil } ?? .greatestFiniteMagnitude
         let fitted = uiView.sizeThatFits(CGSize(width: proposed, height: .greatestFiniteMagnitude))

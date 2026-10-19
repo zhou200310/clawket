@@ -92,7 +92,7 @@ private struct NativeSessionRenameEditor: View {
             }
         }
         .navigationTitle("Rename conversation").navigationBarTitleDisplayMode(.inline)
-        .toolbar {
+        .compatToolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button { save() } label: {
                     if current?.submittingAction == .rename { ProgressView().accessibilityLabel("Save changes") }

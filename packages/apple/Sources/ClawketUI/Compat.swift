@@ -108,6 +108,16 @@ public struct CompatLabeledContent<Label: View, Content: View>: View {
     }
 }
 
+// MARK: - Toolbar
+
+/// Disambiguates `toolbar(content:)` (View vs ToolbarContent overloads) on iOS 15.
+extension View {
+    @MainActor @ViewBuilder
+    public func compatToolbar<C: ToolbarContent>(@ToolbarContentBuilder _ content: () -> C) -> some View {
+        self.toolbar(content)
+    }
+}
+
 // MARK: - ViewThatFits
 
 /// `ViewThatFits` on iOS 16+, the primary variant before that.

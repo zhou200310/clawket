@@ -71,7 +71,7 @@ struct NativeModelControlsView: View {
             }
         }
         .navigationTitle("Model settings").navigationBarTitleDisplayMode(.inline)
-        .toolbar {
+        .compatToolbar {
             if let review, review.refresh.isVisible {
                 ToolbarItem(placement: .primaryAction) {
                     Button { onIntent(.refreshModelControls(reviewID: reviewID)) } label: { Image(systemName: "arrow.clockwise") }

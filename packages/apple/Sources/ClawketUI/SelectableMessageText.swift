@@ -54,6 +54,8 @@ struct SelectableMessageText: UIViewRepresentable {
         view.invalidateIntrinsicContentSize()
     }
 
+    @available(iOS 16.0, macOS 13.0, *)
+
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
         // An unspecified proposal asks for an ideal width. A text view's natural
         // single-line width must not become the minimum width of a chat bubble.

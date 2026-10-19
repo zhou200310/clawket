@@ -551,7 +551,7 @@ private final class NativeInputController: NSObject, ObservableObject, UITextVie
             var caret = textView.textInputView.convert(textView.caretRect(for: selection.end), to: textView)
             guard caret.minX.isFinite, caret.maxX.isFinite, caret.minY.isFinite, caret.maxY.isFinite,
                   !caret.isNull, caret.height > 0 else { return false }
-            if caret.maxY > textView.contentSize.height + 0.5,
+            if #available(iOS 16.0, *), caret.maxY > textView.contentSize.height + 0.5,
                let manager = textView.textLayoutManager, let content = manager.textContentManager {
                 // A lazy TextKit estimate may still understate a distant caret
                 // after a font/width change. Do not force TextKit 1 fallback.
@@ -660,6 +660,7 @@ private struct PersistentTextInput: UIViewRepresentable {
         controller.onChange = onChange
         controller.sync(text: text, expanded: expanded)
     }
+    @available(iOS 16.0, macOS 13.0, *)
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: GrowingTextView, context: Context) -> CGSize? {
         let width = proposal.width.flatMap { $0.isFinite && $0 > 0 ? $0 : nil } ?? 0
         let height = expanded ? proposal.height.flatMap { $0.isFinite && $0 > 0 ? $0 : nil } ?? controller.height : controller.height

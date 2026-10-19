@@ -64,6 +64,7 @@ fileprivate struct NativeCopyControl: UIViewRepresentable {
         if !button.isEnabled { coordinator.reset() }
         button.refresh()
     }
+    @available(iOS 16.0, macOS 13.0, *)
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UIButton, context: Context) -> CGSize? {
         uiView.sizeThatFits(CGSize(width: proposal.width.flatMap { $0.isFinite && $0 > 0 ? $0 : nil } ?? .greatestFiniteMagnitude,
                                   height: .greatestFiniteMagnitude))

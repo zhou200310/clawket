@@ -140,10 +140,17 @@ struct QuestionContentView: View {
                 .accessibilityLabel(field.title.isEmpty ? String(localized: "Your answer") : field.title)
                 .accessibilityIdentifier("question-\(question.id)-\(field.id)-input")
         } else {
-            TextField(field.placeholder ?? String(localized: "Your answer"), text: binding, axis: .vertical)
-                .textFieldStyle(.roundedBorder).lineLimit(2...8).disabled(!question.canEditFields)
-                .accessibilityLabel(field.title.isEmpty ? String(localized: "Your answer") : field.title)
-                .accessibilityIdentifier("question-\(question.id)-\(field.id)-custom-input")
+            if #available(iOS 16.0, macOS 13.0, *) {
+                TextField(field.placeholder ?? String(localized: "Your answer"), text: binding, axis: .vertical)
+                    .textFieldStyle(.roundedBorder).lineLimit(2...8).disabled(!question.canEditFields)
+                    .accessibilityLabel(field.title.isEmpty ? String(localized: "Your answer") : field.title)
+                    .accessibilityIdentifier("question-\(question.id)-\(field.id)-custom-input")
+            } else {
+                TextField(field.placeholder ?? String(localized: "Your answer"), text: binding)
+                    .textFieldStyle(.roundedBorder).disabled(!question.canEditFields)
+                    .accessibilityLabel(field.title.isEmpty ? String(localized: "Your answer") : field.title)
+                    .accessibilityIdentifier("question-\(question.id)-\(field.id)-custom-input")
+            }
         }
     }
 
