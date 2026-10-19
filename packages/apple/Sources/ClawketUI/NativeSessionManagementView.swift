@@ -81,10 +81,17 @@ private struct NativeSessionRenameEditor: View {
     var body: some View {
         Form {
             Section("Conversation name") {
-                TextField("Conversation name", text: $title, axis: .vertical)
-                    .lineLimit(1...4).submitLabel(.done)
-                    .disabled(current?.permits(.rename) != true)
-                    .onSubmit { save() }
+                if #available(iOS 16.0, macOS 13.0, *) {
+                    TextField("Conversation name", text: $title, axis: .vertical)
+                        .lineLimit(1...4).submitLabel(.done)
+                        .disabled(current?.permits(.rename) != true)
+                        .onSubmit { save() }
+                } else {
+                    TextField("Conversation name", text: $title)
+                        .submitLabel(.done)
+                        .disabled(current?.permits(.rename) != true)
+                        .onSubmit { save() }
+                }
             }
             if let error = current?.error { Section { Text(verbatim: error).foregroundStyle(.secondary) } }
             if current == nil {

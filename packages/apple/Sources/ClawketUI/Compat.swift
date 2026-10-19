@@ -114,7 +114,7 @@ public struct CompatLabeledContent<Label: View, Content: View>: View {
 extension View {
     @MainActor @ViewBuilder
     public func compatToolbar<C: ToolbarContent>(@ToolbarContentBuilder _ content: () -> C) -> some View {
-        self.toolbar(content)
+        self.toolbar(content: content)
     }
 }
 
