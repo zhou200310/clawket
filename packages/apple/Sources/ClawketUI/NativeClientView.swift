@@ -26,10 +26,11 @@ public struct NativeClientView: View {
                 }
                 .navigationSplitViewStyle(.balanced)
             } else {
-                // iOS 15 has no NavigationSplitView: fall back to a single-column stack.
-                // Roster rows use CompatNavigationLink, which pushes the conversation.
+                // iOS 15 has no NavigationSplitView: a single-column stack plus a
+                // selection-driven push link, so sheet/search selections also open.
                 NavigationView {
                     roster
+                        .background(ios15PushLink)
                 }
                 .navigationViewStyle(.stack)
             }
@@ -83,6 +84,25 @@ public struct NativeClientView: View {
         return entries.filter {
             [$0.name, $0.subtitle, $0.backendLabel ?? ""].contains { $0.localizedStandardContains(search) }
         }
+    }
+
+    /// iOS 15 replacement for the split-view detail column: pushes whatever route
+    /// is selected, no matter where the selection came from (row, sheet, search).
+    @ViewBuilder
+    private var ios15PushDestination: some View {
+        if let route = model.selectedConversation { conversationDestination(route) }
+    }
+
+    private var ios15PushIsActive: Binding<Bool> {
+        Binding(get: { model.selectedConversation != nil },
+                set: { if !$0 { model.selectedConversation = nil } })
+    }
+
+    private var ios15PushLink: some View {
+        NavigationLink(destination: ios15PushDestination, isActive: ios15PushIsActive) {
+            EmptyView()
+        }
+        .hidden()
     }
 
     @ViewBuilder
@@ -154,10 +174,18 @@ public struct NativeClientView: View {
                         } else { switch agent.entryMode {
                         case let .conversation(route):
                             if route.isConcrete {
-                                CompatNavigationLink(value: route) {
-                                    AgentRow(agent: agent)
-                                } destination: {
-                                    conversationDestination(route)
+                                if #available(iOS 16.0, macOS 13.0, *) {
+                                    CompatNavigationLink(value: route) {
+                                        AgentRow(agent: agent)
+                                    } destination: {
+                                        conversationDestination(route)
+                                    }
+                                } else {
+                                    Button {
+                                        model.selectedConversation = route
+                                        onIntent(.openConversation(route))
+                                    } label: { AgentRow(agent: agent) }
+                                    .buttonStyle(.plain)
                                 }
                             }
                         case let .catalog(id):
