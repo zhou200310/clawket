@@ -58,7 +58,7 @@ struct PendingMessageEditor: View {
                             saving = false
                         }
                     }
-                    .fontWeight(.bold).disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedMedia.isEmpty)
+                    .font(.body.bold()).disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedMedia.isEmpty)
                     .keyboardShortcut(.defaultAction)
                     .accessibilityIdentifier("save-pending-message")
                 }

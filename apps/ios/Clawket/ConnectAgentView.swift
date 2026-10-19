@@ -99,7 +99,7 @@ struct ConnectAgentView: View {
                 }
             }
             .navigationTitle("Connect an agent").navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .compatToolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }.disabled(connecting)
                 }

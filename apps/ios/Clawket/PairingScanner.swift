@@ -10,7 +10,7 @@ struct PairingScanner: View {
     var body: some View {
         CompatNavigationStack {
             Group {
-                if DataScannerViewController.isSupported && DataScannerViewController.isAvailable && error == nil {
+                if #available(iOS 16.0, *), DataScannerViewController.isSupported && DataScannerViewController.isAvailable && error == nil {
                     ScannerSurface(onValue: onValue, onFailure: { error = $0 })
                         .ignoresSafeArea(edges: .bottom)
                 } else {
@@ -28,6 +28,7 @@ struct PairingScanner: View {
     }
 }
 
+@available(iOS 16.0, *)
 private struct ScannerSurface: UIViewControllerRepresentable {
     let onValue: @MainActor (String) -> Void
     let onFailure: @MainActor (String) -> Void

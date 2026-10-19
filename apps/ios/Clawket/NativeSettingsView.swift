@@ -98,7 +98,7 @@ private struct NativeChatAppearanceView: View {
                             Circle().fill(Color(uiColor: accent.uiColor)).frame(width: 22, height: 22).accessibilityHidden(true)
                             Text(accent.title).foregroundStyle(.primary)
                             Spacer()
-                            if draft.accent == accent { Image(systemName: "checkmark").fontWeight(.semibold) }
+                            if draft.accent == accent { Image(systemName: "checkmark").font(.body.weight(.semibold)) }
                         }.frame(minHeight: 32)
                     }
                     .accessibilityAddTraits(draft.accent == accent ? .isSelected : [])
