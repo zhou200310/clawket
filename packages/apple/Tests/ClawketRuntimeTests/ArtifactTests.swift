@@ -8,7 +8,7 @@ private actor TicketHTTP: RuntimeArtifactHTTPClient {
     let body: Data
     var calls = 0
     init(_ body: Data) { self.body = body }
-    func download(_ url: URL, timeout: Duration) async throws -> Data { calls += 1; return body }
+    func download(_ url: URL, timeout: CompatDuration) async throws -> Data { calls += 1; return body }
 }
 private func artifactFile(size: Int = 3) -> JSONValue {
     .object(["id": .string("opaque-handle"), "name": .string("result.png"), "size": .number(Double(size)), "mimeType": .string("image/png")])

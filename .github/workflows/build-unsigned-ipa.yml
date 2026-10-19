@@ -1,0 +1,84 @@
+name: Build unsigned IPA
+
+# Manual runs, plus every push to the ios15 port branch.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ios15]
+    paths:
+      - packages/apple/**
+      - apps/ios/**
+      - .github/workflows/build-unsigned-ipa.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unsigned-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-unsigned-ipa:
+    name: Build unsigned IPA (iOS 15.4)
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      SCHEME: Clawket
+      PROJECT: apps/ios/Clawket.xcodeproj
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          swift --version
+
+      - name: Resolve Swift package dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -resolvePackageDependencies \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm"
+
+      - name: Build for device without code signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            -jobs 2 \
+            build
+
+      - name: Package Payload into an unsigned IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="build/Build/Products/Release-iphoneos/Clawket.app"
+          test -d "$APP"
+          rm -rf Payload Clawket-unsigned.ipa
+          mkdir -p Payload
+          cp -R "$APP" Payload/Clawket.app
+          # An .ipa is just a zip whose root contains Payload/<App>.app
+          ditto -c -k --sequesterRsrc --keepParent Payload Clawket-unsigned.ipa
+          ls -lh Clawket-unsigned.ipa
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' Payload/Clawket.app/Info.plist
+          /usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' Payload/Clawket.app/Info.plist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Clawket-unsigned-ipa
+          path: Clawket-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14

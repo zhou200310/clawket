@@ -17,7 +17,7 @@ struct RuntimeArtifactEntry: Sendable {
     let sessionKey: String
     let remoteID: String?
     let data: Data?
-    let expires: Duration
+    let expires: CompatDuration
 }
 
 extension RuntimeCoordinator {
@@ -42,7 +42,7 @@ extension RuntimeCoordinator {
             }
             guard connection.transportKind != .relay, retainedBytes <= 10 * 1_024 * 1_024 else { throw RuntimeFailure(.capacity) }
             let deadline = clock.now() + .seconds(45)
-            func remaining() throws -> Duration {
+            func remaining() throws -> CompatDuration {
                 let duration = deadline - clock.now()
                 guard duration > .zero else { throw RuntimeFailure(.timeout) }; return duration
             }

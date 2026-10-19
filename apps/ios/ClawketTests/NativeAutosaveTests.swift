@@ -11,10 +11,10 @@ final class NativeAutosaveTests: XCTestCase, @unchecked Sendable {
     private func directory() -> URL { FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString) }
 
     @MainActor private func writing(_ model: NativeAppModel) async throws {
-        let deadline = ContinuousClock.now + .seconds(5)
+        let deadline = Date().addingTimeInterval(5)
         while model.autosaveAttempts[route]?.write == nil {
-            guard ContinuousClock.now < deadline else { XCTFail("Save never reached its actual persist call"); throw CancellationError() }
-            try await Task.sleep(for: .milliseconds(1))
+            guard Date() < deadline else { XCTFail("Save never reached its actual persist call"); throw CancellationError() }
+            try await Task.sleep(nanoseconds: 1_000_000)
         }
     }
 

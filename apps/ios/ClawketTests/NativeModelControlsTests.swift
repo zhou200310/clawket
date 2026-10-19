@@ -134,7 +134,7 @@ final class NativeModelControlsTests: XCTestCase, @unchecked Sendable {
         return (controller, model, runtime, host)
     }
     @MainActor private func wait(_ check: @MainActor () async -> Bool) async throws {
-        for _ in 0..<2_000 { if await check() { return }; try await Task.sleep(for: .milliseconds(2)) }
+        for _ in 0..<2_000 { if await check() { return }; try await Task.sleep(nanoseconds: 2_000_000) }
         XCTFail("Settings did not reach expected state"); throw StoreFailure.unavailable
     }
     @MainActor private func open(_ controller: NativeModelControls, _ model: ClientPresentation) async throws -> UUID {

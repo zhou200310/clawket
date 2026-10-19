@@ -1,5 +1,6 @@
 import ClawketPairing
 import SwiftUI
+import ClawketUI
 
 extension PairingBackend {
     var title: String {
@@ -41,7 +42,7 @@ struct ConnectAgentView: View {
     @FocusState private var focusCode: Bool
 
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             Form {
                 Section {
                     Picker("Connect with", selection: $method) {

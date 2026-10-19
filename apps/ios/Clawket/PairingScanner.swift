@@ -1,5 +1,6 @@
 import SwiftUI
 import VisionKit
+import ClawketUI
 
 struct PairingScanner: View {
     let onValue: @MainActor (String) -> Void
@@ -7,7 +8,7 @@ struct PairingScanner: View {
     @State private var error: String?
 
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             Group {
                 if DataScannerViewController.isSupported && DataScannerViewController.isAvailable && error == nil {
                     ScannerSurface(onValue: onValue, onFailure: { error = $0 })

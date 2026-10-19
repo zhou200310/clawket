@@ -4,6 +4,7 @@ import QuickLook
 import SwiftUI
 import UniformTypeIdentifiers
 import UIKit
+import ClawketUI
 
 protocol NativeShareLease: Sendable { func release() async }
 
@@ -74,7 +75,7 @@ struct NativeMediaViewer: View {
     @State private var visible = true
     @State private var notice: String?
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             Group {
                 if let data = preview.display.image, let image = UIImage(data: data) {
                     NativeZoomImage(image: image).accessibilityLabel(preview.display.resource.name)

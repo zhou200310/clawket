@@ -152,7 +152,7 @@ extension RuntimeCoordinator {
         var received = false
         do {
             let (method, params) = try modelChangeRequest(change, backend: backend, sessionKey: sessionKey, hash: hash)
-            let timeout: Duration = change.action == .selectModel
+            let timeout: CompatDuration = change.action == .selectModel
                 ? ([.claudeCode, .pi, .localModel].contains(backend) ? .seconds(190) : .seconds(45)) : (backend == .codex ? .seconds(45) : .seconds(20))
             let payload = try await rpc(method, params: params, timeout: timeout, scope: scope)
             received = true

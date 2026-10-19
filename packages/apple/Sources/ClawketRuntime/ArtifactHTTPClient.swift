@@ -1,9 +1,10 @@
 import Foundation
+import ClawketTransport
 
 public protocol RuntimeArtifactHTTPClient: Sendable {
     /// Must honor cancellation and cap the complete body at 10 MiB, including
     /// unknown-length responses. URL was authority-validated by the coordinator.
-    func download(_ url: URL, timeout: Duration) async throws -> Data
+    func download(_ url: URL, timeout: CompatDuration) async throws -> Data
 }
 
 struct ArtifactHTTPResponse: Sendable {
@@ -117,7 +118,7 @@ public final class URLSessionArtifactHTTPClient: RuntimeArtifactHTTPClient {
         self.configuration = copy
     }
 
-    public func download(_ url: URL, timeout: Duration) async throws -> Data {
+    public func download(_ url: URL, timeout: CompatDuration) async throws -> Data {
         guard timeout > .zero, timeout <= .seconds(45), ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
               url.host != nil, url.user == nil, url.password == nil, url.fragment == nil else { throw RuntimeFailure(.invalidConnection) }
         var request = URLRequest(url: url)
@@ -149,11 +150,11 @@ public final class URLSessionArtifactHTTPClient: RuntimeArtifactHTTPClient {
     }
 }
 
-func artifactDeadline<T: Sendable>(timeout: Duration, onTimeout: @escaping @Sendable () async -> Void,
+func artifactDeadline<T: Sendable>(timeout: CompatDuration, onTimeout: @escaping @Sendable () async -> Void,
                                  operation: @escaping @Sendable () async throws -> T) async throws -> T {
     try await withThrowingTaskGroup(of: T.self) { group in
         group.addTask { try await operation() }
-        group.addTask { try await Task.sleep(for: timeout); throw RuntimeFailure(.timeout) }
+        group.addTask { try await Task.sleep(nanoseconds: UInt64(clamping: max(0, timeout.nanoseconds))); throw RuntimeFailure(.timeout) }
         defer { group.cancelAll() }
         do { guard let result = try await group.next() else { throw CancellationError() }; return result }
         catch { group.cancelAll(); await onTimeout(); throw error }

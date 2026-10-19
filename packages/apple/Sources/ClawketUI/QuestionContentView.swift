@@ -33,8 +33,9 @@ struct QuestionContentView: View {
                     Label("This answer is too long.", systemImage: "exclamationmark.circle")
                         .font(.footnote).foregroundStyle(.orange)
                 }
-                ViewThatFits(in: .horizontal) {
+                CompatViewThatFits(in: .horizontal) {
                     HStack(spacing: 10) { actions }
+                } fallback: {
                     VStack(alignment: .leading, spacing: 10) { actions }
                 }
             }
@@ -120,7 +121,7 @@ struct QuestionContentView: View {
         if question.kind == .editor {
             TextEditor(text: binding)
                 .frame(minHeight: 160, maxHeight: 280)
-                .scrollContentBackground(.hidden)
+                .compatScrollContentBackground(.hidden)
                 .overlay(alignment: .topLeading) {
                     if binding.wrappedValue.isEmpty, let placeholder = field.placeholder, !placeholder.isEmpty {
                         Text(placeholder).foregroundStyle(.secondary).padding(.horizontal, 5).padding(.vertical, 8)

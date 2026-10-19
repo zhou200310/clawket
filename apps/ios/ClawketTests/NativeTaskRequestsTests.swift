@@ -70,7 +70,7 @@ final class NativeTaskRequestsTests: XCTestCase, @unchecked Sendable {
     }
     @MainActor private func waitUntil(_ check: @MainActor () async -> Bool) async throws {
         for _ in 0..<2_000 {
-            if await check() { return }; try await Task.sleep(for: .milliseconds(2))
+            if await check() { return }; try await Task.sleep(nanoseconds: 2_000_000)
         }
         XCTFail("Request operation did not reach its expected state"); throw StoreFailure.unavailable
     }

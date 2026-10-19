@@ -281,7 +281,7 @@ final class NativeTaskRequests {
                 if saveTokens[key] == token { saveTasks.removeValue(forKey: key); saveTokens.removeValue(forKey: key) }
             }
             do {
-                if !immediate { try await Task.sleep(for: .milliseconds(250)) }
+                if !immediate { try await Task.sleep(nanoseconds: 250_000_000) }
                 try Task.checkCancellation()
                 try await drafts.save(response, key: key, revision: revision)
             } catch is CancellationError { }

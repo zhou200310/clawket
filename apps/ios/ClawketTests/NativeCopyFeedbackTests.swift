@@ -152,15 +152,15 @@ final class NativeCopyFeedbackTests: XCTestCase {
         host.view.frame = CGRect(x: 0, y: 0, width: 320, height: 850)
         for _ in 0..<8 {
             host.view.setNeedsLayout(); host.view.layoutIfNeeded(); CATransaction.flush()
-            try? await Task.sleep(for: .milliseconds(10))
+            try? await Task.sleep(nanoseconds: 10_000_000)
         }
     }
     @MainActor private func settle() async { for _ in 0..<8 { await Task.yield() } }
     @MainActor private func waitUntil(_ condition: () -> Bool) async throws {
-        let deadline = ContinuousClock.now + .seconds(3)
+        let deadline = Date().addingTimeInterval(3)
         while !condition() {
-            guard ContinuousClock.now < deadline else { XCTFail("Copy state did not settle"); throw CopyWaitFailure.timeout }
-            try await Task.sleep(for: .milliseconds(10))
+            guard Date() < deadline else { XCTFail("Copy state did not settle"); throw CopyWaitFailure.timeout }
+            try await Task.sleep(nanoseconds: 10_000_000)
         }
     }
     @MainActor private func assertSameFrame(_ actual: CGRect, _ expected: CGRect, file: StaticString = #filePath, line: UInt = #line) {

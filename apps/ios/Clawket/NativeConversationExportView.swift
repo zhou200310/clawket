@@ -1,4 +1,5 @@
 import SwiftUI
+import ClawketUI
 
 struct NativeConversationExportView: View {
     let controller: NativeHistoryController
@@ -13,7 +14,7 @@ struct NativeConversationExportView: View {
     @State private var visible = true
     @State private var operationState = NativeHistoryOperation()
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             Form {
                 Section {
                     Text(request.title.isEmpty ? String(localized: "Conversation") : request.title).font(.headline)

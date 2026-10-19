@@ -9,7 +9,7 @@ struct NativePreviousTranscriptsView: View {
     @State private var loading = true
     @State private var notice: String?
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             List {
                 Section {
                     if loading { ProgressView().frame(maxWidth: .infinity) }

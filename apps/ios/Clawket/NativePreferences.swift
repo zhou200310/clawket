@@ -80,7 +80,7 @@ final class NativePreferences: ObservableObject {
         let immediate = immediate || !foreground
         saveTask?.cancel()
         saveTask = Task { [weak self] in
-            if !immediate { try? await Task.sleep(for: .milliseconds(350)) }
+            if !immediate { try? await Task.sleep(nanoseconds: 350_000_000) }
             guard let self, !Task.isCancelled else { return }
             let snapshot = self.navigation
             self.saveTask = nil // Only cancel a debounce, never an in-flight atomic replacement.

@@ -1,4 +1,5 @@
 import Foundation
+import ClawketTransport
 
 struct ModelControlKey: Sendable, Equatable, Hashable {
     let connectionID: String
@@ -46,7 +47,7 @@ struct ModelControlsState: Sendable {
     }
     struct Confirmation: Sendable {
         let value: RuntimeModelPermissionConfirmation
-        let deadline: Duration
+        let deadline: CompatDuration
     }
     struct ImageEvidence: Sendable {
         let scope: RuntimeCoordinator.Scope

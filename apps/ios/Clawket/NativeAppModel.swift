@@ -132,7 +132,7 @@ final class NativeAppModel: ObservableObject {
     var modelChoices: [ConversationID: [String: RuntimeModel]] = [:]
     private let networkMonitor = NWPathMonitor()
     private var networkHintTask: Task<Void, Never>?
-    private var lastNetworkHint: ContinuousClock.Instant?
+    private var lastNetworkHint: Date?
     private var running: [ConversationID: String] = [:]
     var saveTasks: [ConversationID: Task<Void, Never>] = [:]
     struct AutosaveWrite {
@@ -560,10 +560,10 @@ final class NativeAppModel: ObservableObject {
     private func networkPathHint() {
         networkHintTask?.cancel()
         networkHintTask = Task {
-            try? await Task.sleep(for: .milliseconds(300))
+            try? await Task.sleep(nanoseconds: 300_000_000)
             guard !Task.isCancelled else { return }
-            let now = ContinuousClock.now
-            if let lastNetworkHint, lastNetworkHint.duration(to: now) < .seconds(5) { return }
+            let now = Date()
+            if let lastNetworkHint, now.timeIntervalSince(lastNetworkHint) < 5 { return }
             lastNetworkHint = now
             // The OS path is a probe/retry hint, never evidence of backend readiness.
             await runtime?.networkPathChanged()
@@ -1591,7 +1591,7 @@ final class NativeAppModel: ObservableObject {
                     autosaveAttempts.removeValue(forKey: route); saveTasks.removeValue(forKey: route)
                 }
             }
-            if !immediate { try? await Task.sleep(for: .milliseconds(350)) }
+            if !immediate { try? await Task.sleep(nanoseconds: 350_000_000) }
             // A connection switch retires UI result authority, not an offline draft write.
             guard !Task.isCancelled, autosaveAttempts[route]?.id == id else { return }
             guard physicalOperations[NativeHistoryScope(route)] == nil else { return }

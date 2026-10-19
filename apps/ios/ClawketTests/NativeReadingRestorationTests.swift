@@ -130,7 +130,7 @@ final class NativeReadingRestorationTests: XCTestCase {
     @MainActor private func settle<Content: View>(_ host: UIHostingController<Content>) async {
         for _ in 0..<24 {
             host.view.setNeedsLayout(); host.view.layoutIfNeeded(); CATransaction.flush()
-            try? await Task.sleep(for: .milliseconds(10))
+            try? await Task.sleep(nanoseconds: 10_000_000)
         }
         XCTAssertNotNil(host.view.window)
     }

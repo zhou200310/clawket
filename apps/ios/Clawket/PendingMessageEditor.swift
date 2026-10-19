@@ -19,7 +19,7 @@ struct PendingMessageEditor: View {
     }
 
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             Form {
                 Section {
                     TextEditor(text: $text)
@@ -58,7 +58,7 @@ struct PendingMessageEditor: View {
                             saving = false
                         }
                     }
-                    .bold().disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedMedia.isEmpty)
+                    .fontWeight(.bold).disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedMedia.isEmpty)
                     .keyboardShortcut(.defaultAction)
                     .accessibilityIdentifier("save-pending-message")
                 }

@@ -127,7 +127,7 @@ final class NativeComposerVisibilityTests: XCTestCase {
             host.view.setNeedsLayout()
             host.view.layoutIfNeeded()
             CATransaction.flush()
-            try? await Task.sleep(for: .milliseconds(10))
+            try? await Task.sleep(nanoseconds: 10_000_000)
         }
     }
 

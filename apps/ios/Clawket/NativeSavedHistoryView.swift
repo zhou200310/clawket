@@ -17,7 +17,7 @@ struct NativeSavedHistoryView: View {
     private var sharing: Bool { operationState.isBusy }
     @State private var visible = true
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             List {
                 Picker("Saved conversations", selection: $filter) {
                     Text("All").tag(NativeSavedFilter.all)

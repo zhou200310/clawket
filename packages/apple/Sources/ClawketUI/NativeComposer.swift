@@ -64,8 +64,8 @@ struct NativeComposer: View {
                         }.composerHeight("after")
                     }
                 }
-                .scrollBounceBehavior(.basedOnSize)
-                .scrollDismissesKeyboard(.never)
+                .compatScrollBounceBehavior(.basedOnSize)
+                .compatScrollDismissesKeyboard(.never)
                 .frame(height: expanded ? availableContentHeight : min(naturalContentHeight, availableContentHeight))
                 .composerHeight("viewport")
                 .accessibilityIdentifier("composer-content")

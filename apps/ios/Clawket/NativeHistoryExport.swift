@@ -14,14 +14,15 @@ struct NativeHistoryExportLoader {
     }
 
     /// Never label an incomplete or changing history window as a complete portable snapshot.
-    static func load(key: String, title: String, deadline supplied: ContinuousClock.Instant? = nil,
+    static func load(key: String, title: String, deadline supplied: Date? = nil,
                      read: @escaping Read) async throws -> NativePublicTranscript {
-        let maximum = ContinuousClock.now.advanced(by: .seconds(90))
+        let maximum = Date().addingTimeInterval(90)
         let deadline = min(supplied ?? maximum, maximum)
         return try await withThrowingTaskGroup(of: NativePublicTranscript.self) { group in
             group.addTask { try await pages(key: key, title: title, deadline: deadline, read: read) }
             group.addTask {
-                try await Task.sleep(until: deadline, clock: .continuous)
+                let remaining = deadline.timeIntervalSinceNow
+                if remaining > 0 { try await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000)) }
                 throw NativeHistoryExportFailure.timedOut
             }
             defer { group.cancelAll() }
@@ -30,7 +31,7 @@ struct NativeHistoryExportLoader {
         }
     }
 
-    private static func pages(key: String, title: String, deadline: ContinuousClock.Instant, read: Read) async throws -> NativePublicTranscript {
+    private static func pages(key: String, title: String, deadline: Date, read: Read) async throws -> NativePublicTranscript {
         var cursor: String?, cursors: Set<Data> = [], seen: [Data: String] = [:]
         var messages: [NativePublicTranscript.Message] = [], physicalID: String?, firstHash = "", textUnits = 0, limit = 100
         for page in 0..<100 {
@@ -85,9 +86,9 @@ struct NativeHistoryExportLoader {
     private static func fingerprint(_ values: [RuntimeMessage]) throws -> String {
         historyHash(try historyEncode(values.map { Fingerprint(id: $0.id, role: $0.role, text: $0.text, raw: $0.raw) }))
     }
-    private static func check(_ deadline: ContinuousClock.Instant) throws {
+    private static func check(_ deadline: Date) throws {
         try Task.checkCancellation()
-        guard ContinuousClock.now < deadline else { throw NativeHistoryExportFailure.timedOut }
+        guard Date() < deadline else { throw NativeHistoryExportFailure.timedOut }
     }
 }
 

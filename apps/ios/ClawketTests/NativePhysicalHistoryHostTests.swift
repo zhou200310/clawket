@@ -138,9 +138,9 @@ final class NativePhysicalHistoryHostTests: XCTestCase, @unchecked Sendable {
                 await withCheckedContinuation { release = $0 }
                 try model.adoptPreparedPhysicalConversation(loaded, route: self.route, operation: operation, host: host)
             }
-            let deadline = ContinuousClock.now + .seconds(3)
+            let deadline = Date().addingTimeInterval(3)
             while release == nil {
-                guard ContinuousClock.now < deadline else { task.cancel(); throw NativeHistoryFailure.unavailable }
+                guard Date() < deadline else { task.cancel(); throw NativeHistoryFailure.unavailable }
                 await Task.yield()
             }
             let replacement = NativeConversation(draft: "new working draft", historyEpoch: UUID(), physicalSessionID: "replacement")

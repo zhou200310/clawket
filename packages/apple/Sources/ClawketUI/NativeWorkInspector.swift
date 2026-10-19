@@ -100,8 +100,12 @@ struct NativeWorkInspector: View {
                             WorkRunHeader(record: record)
                             ForEach(record.newestFirstSteps) { step in
                                 if step.inspect.isVisible {
-                                    NavigationLink(value: WorkStepRoute(recordID: record.id, stepID: step.id)) {
+                                    CompatNavigationLink(value: WorkStepRoute(recordID: record.id, stepID: step.id)) {
                                         WorkStepRow(step: step)
+                                    } destination: {
+                                        NativeWorkStepDetail(model: model, conversationID: conversationID, workID: workID,
+                                                             route: WorkStepRoute(recordID: record.id, stepID: step.id),
+                                                             onIntent: onIntent)
                                     }
                                     .disabled(!step.inspect.isEnabled)
                                     .accessibilityHint(step.inspect.explanation ?? "")
@@ -124,7 +128,7 @@ struct NativeWorkInspector: View {
         }
         .navigationTitle("Work record")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(for: WorkStepRoute.self) { route in
+        .compatNavigationDestination(for: WorkStepRoute.self) { route in
             NativeWorkStepDetail(model: model, conversationID: conversationID, workID: workID,
                                  route: route, onIntent: onIntent)
         }
@@ -284,12 +288,12 @@ private struct WorkClockView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             if let start = clock.validStartedAt {
-                LabeledContent("Started") { Text(start, format: .dateTime.year().month(.abbreviated).day().hour().minute().second()) }
+                CompatLabeledContent("Started") { Text(start, format: .dateTime.year().month(.abbreviated).day().hour().minute().second()) }
             }
             if let finish = clock.validFinishedAt {
-                LabeledContent("Finished") { Text(finish, format: .dateTime.year().month(.abbreviated).day().hour().minute().second()) }
+                CompatLabeledContent("Finished") { Text(finish, format: .dateTime.year().month(.abbreviated).day().hour().minute().second()) }
             }
-            if let duration = clock.durationLabel { LabeledContent("Duration", value: duration) }
+            if let duration = clock.durationLabel { CompatLabeledContent("Duration", value: duration) }
         }.font(.caption).foregroundStyle(.secondary)
     }
 }

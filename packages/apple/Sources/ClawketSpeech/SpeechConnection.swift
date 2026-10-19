@@ -8,7 +8,7 @@ public actor SpeechConnection {
     private var reader: Task<Void, Never>?
     private var watchdog: Task<Void, Never>?
     private var deadlineID = UUID()
-    private var deadline: (at: Duration, failure: SpeechCode)?
+    private var deadline: (at: CompatDuration, failure: SpeechCode)?
     private var initialized = false
     private var finishing = false
     private var writing = false

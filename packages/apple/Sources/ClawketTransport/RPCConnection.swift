@@ -61,10 +61,10 @@ public struct RelayHeartbeatConfiguration: Sendable, Equatable {
     public static let clientPingCapability = "relay.client-ping.v1"
     public static let transferHintCapability = "relay.transfer-hint.v1"
     public static let advertisedCapabilities = [clientPongCapability, clientPingCapability, transferHintCapability]
-    public let interval: Duration
+    public let interval: CompatDuration
     public let missedIntervals: Int
 
-    public init(interval: Duration = .seconds(30), missedIntervals: Int = 3) throws {
+    public init(interval: CompatDuration = .seconds(30), missedIntervals: Int = 3) throws {
         guard interval > .zero, interval <= .seconds(300), missedIntervals <= 100 else {
             throw RPCFailure(.invalidConfiguration)
         }
@@ -79,8 +79,8 @@ public actor RPCConnection {
     private let eventContinuation: AsyncThrowingStream<ConnectionEvent, any Error>.Continuation
     private let factory: any WebSocketFactory
     let clock: any TransportClock
-    private let openTimeout: Duration
-    private let handshakeTimeout: Duration
+    private let openTimeout: CompatDuration
+    private let handshakeTimeout: CompatDuration
     private let maximumPending: Int
     private let eventBufferLimit: Int
     private let eventBufferByteLimit: Int
@@ -100,14 +100,14 @@ public actor RPCConnection {
         let endpoint: URL
         let socket: any WebSocketConnection
         var relay: RelayHeartbeatConfiguration?
-        let openDeadline: Duration
+        let openDeadline: CompatDuration
         var handshakeDeadline: ResponseDeadline?
         var openTask: Task<Void, any Error>?
         var receiveTask: Task<Void, Never>?
         var openTimeoutTask: Task<Void, Never>?
         var handshakeTask: Task<Void, Never>?
         var heartbeatTask: Task<Void, Never>?
-        var lastTick: Duration?
+        var lastTick: CompatDuration?
         var liveness = RelayLivenessState()
     }
 
@@ -121,7 +121,7 @@ public actor RPCConnection {
 
     public init(factory: any WebSocketFactory = URLSessionWebSocketFactory(),
                 clock: any TransportClock = MonotonicTransportClock(),
-                openTimeout: Duration = .seconds(10), handshakeTimeout: Duration = .seconds(20),
+                openTimeout: CompatDuration = .seconds(10), handshakeTimeout: CompatDuration = .seconds(20),
                 maximumPending: Int = 128, eventBufferLimit: Int = 256,
                 eventBufferByteLimit: Int = 16 * 1_024 * 1_024) throws {
         guard openTimeout > .zero, openTimeout <= .seconds(120),
@@ -239,7 +239,7 @@ public actor RPCConnection {
         return true
     }
 
-    public func nextReconnectDelay(randomUnit: Double = 0.5) -> Duration {
+    public func nextReconnectDelay(randomUnit: Double = 0.5) -> CompatDuration {
         reconnectPolicy.nextDelay(randomUnit: randomUnit)
     }
 
@@ -280,12 +280,12 @@ public actor RPCConnection {
     }
 
     public func request(method: String, params: JSONValue = .object([:]),
-                        timeout: Duration = .seconds(20), generation: ConnectionGeneration? = nil) async throws -> JSONValue {
+                        timeout: CompatDuration = .seconds(20), generation: ConnectionGeneration? = nil) async throws -> JSONValue {
         try await requestEnvelope(method: method, params: params, timeout: timeout, generation: generation).payload
     }
 
     public func requestEnvelope(method: String, params: JSONValue = .object([:]),
-                                timeout: Duration = .seconds(20), generation: ConnectionGeneration? = nil) async throws -> RPCResponse {
+                                timeout: CompatDuration = .seconds(20), generation: ConnectionGeneration? = nil) async throws -> RPCResponse {
         guard !Task.isCancelled else { throw RPCFailure(.cancelled) }
         guard !method.isEmpty, method.utf8.count <= 128, timeout > .zero, timeout <= .seconds(300) else {
             throw RPCFailure(.invalidRequest)
@@ -433,7 +433,7 @@ public actor RPCConnection {
         request.continuation.resume(throwing: RPCFailure(code, delivery: request.delivery))
     }
 
-    private func requestRemaining(_ id: String, generation: ConnectionGeneration) -> Duration {
+    private func requestRemaining(_ id: String, generation: ConnectionGeneration) -> CompatDuration {
         guard var request = pending[id], request.generation == generation,
               current?.generation == generation else { return .zero }
         let remaining = request.deadline.remaining(at: clock.now(), transferGrace: transferGrace(generation: generation))
@@ -441,7 +441,7 @@ public actor RPCConnection {
         return remaining
     }
 
-    private func requestTimeoutDelay(_ id: String, generation: ConnectionGeneration) -> Duration? {
+    private func requestTimeoutDelay(_ id: String, generation: ConnectionGeneration) -> CompatDuration? {
         guard pending[id]?.generation == generation else { return nil }
         let remaining = requestRemaining(id, generation: generation)
         if remaining > .zero { return remaining }
@@ -449,7 +449,7 @@ public actor RPCConnection {
         return nil
     }
 
-    func handshakeRemaining(_ generation: ConnectionGeneration) -> Duration {
+    func handshakeRemaining(_ generation: ConnectionGeneration) -> CompatDuration {
         guard current?.generation == generation, var deadline = current?.handshakeDeadline else { return .zero }
         let remaining = deadline.remaining(at: clock.now(), transferGrace: transferGrace(generation: generation))
         current?.handshakeDeadline = deadline
@@ -557,7 +557,7 @@ public actor RPCConnection {
         fail(generation, code: .timeout)
     }
 
-    private func handshakeTimeoutDelay(_ generation: ConnectionGeneration) -> Duration? {
+    private func handshakeTimeoutDelay(_ generation: ConnectionGeneration) -> CompatDuration? {
         guard current?.generation == generation, state == .handshaking else { return nil }
         let remaining = handshakeRemaining(generation)
         if remaining > .zero { return remaining }
@@ -581,7 +581,7 @@ public actor RPCConnection {
         }
     }
 
-    private func checkHeartbeat(_ generation: ConnectionGeneration, budget: Duration) -> Bool {
+    private func checkHeartbeat(_ generation: ConnectionGeneration, budget: CompatDuration) -> Bool {
         guard !Task.isCancelled else { return false }
         guard let entry = current, entry.generation == generation, state == .ready, foreground else { return false }
         guard let tick = entry.lastTick, clock.now() - tick < budget else {

@@ -267,10 +267,10 @@ private final class StartCompletion: @unchecked Sendable {
 }
 
 private func realEventually(_ check: () async -> Bool) async throws {
-    let deadline = ContinuousClock.now + .seconds(5)
-    while ContinuousClock.now < deadline {
+    let deadline = Date().addingTimeInterval(5)
+    while Date() < deadline {
         if await check() { return }
-        try await Task.sleep(for: .milliseconds(5))
+        try await Task.sleep(nanoseconds: 5_000_000)
     }
     throw RelayTestFailure.waiting
 }

@@ -42,10 +42,12 @@ struct NativeTranscript: UIViewRepresentable {
         table.contentInsetAdjustmentBehavior = .never
         table.rowHeight = UITableView.automaticDimension
         table.estimatedRowHeight = 130
-        table.selfSizingInvalidation = .enabledIncludingConstraints
+        if #available(iOS 16.0, *) {
+            table.selfSizingInvalidation = .enabledIncludingConstraints
+        }
         table.contentInset = UIEdgeInsets(top: 14, left: 0, bottom: 16, right: 0)
         table.delegate = context.coordinator
-        table.register(UITableViewCell.self, forCellReuseIdentifier: "message")
+        table.register(HostingMessageCell.self, forCellReuseIdentifier: "message")
         table.onGeometryChanged = { [weak coordinator = context.coordinator] in coordinator?.geometryChanged() }
         context.coordinator.install(table)
         return table
@@ -86,12 +88,23 @@ struct NativeTranscript: UIViewRepresentable {
                 guard let self, let message = self.items[id] else { return cell }
                 cell.backgroundColor = .clear
                 cell.selectionStyle = .none
-                cell.contentConfiguration = UIHostingConfiguration {
-                    NativeMessageRow(message: message, conversationID: self.parent.conversationID,
-                                     model: self.parent.model, onIntent: self.parent.onIntent,
-                                     onReadingInteraction: { [weak self] in self?.pauseFollowing() })
-                }.margins(.horizontal, 20).margins(.vertical, 12)
+                self.configure(cell, message: message)
                 return cell
+            }
+        }
+
+        private func configure(_ cell: UITableViewCell, message: MessagePresentation) {
+            let row = NativeMessageRow(message: message, conversationID: parent.conversationID,
+                                       model: parent.model, onIntent: parent.onIntent,
+                                       onReadingInteraction: { [weak self] in self?.pauseFollowing() })
+            if #available(iOS 16.0, *) {
+                cell.contentConfiguration = UIHostingConfiguration {
+                    row
+                }.margins(.horizontal, 20).margins(.vertical, 12)
+            } else if let hosting = cell as? HostingMessageCell {
+                // iOS 15 fallback: UIHostingConfiguration is iOS 16+, so host SwiftUI
+                // directly in the cell and let the cell self-size via sizeThatFits.
+                hosting.setRootView(AnyView(row))
             }
         }
 
@@ -305,6 +318,47 @@ struct NativeTranscript: UIViewRepresentable {
                 self.parent.following = value
             }
         }
+    }
+}
+
+/// Cell used before iOS 16, where `UIHostingConfiguration` is unavailable.
+/// It hosts the SwiftUI row in a child `UIHostingController` and reports the
+/// fitting height so `UITableView.automaticDimension` still sizes rows.
+@MainActor
+final class HostingMessageCell: UITableViewCell {
+    private var host: UIHostingController<AnyView>?
+
+    func setRootView(_ view: AnyView) {
+        contentView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 12, leading: 20, bottom: 12, trailing: 20)
+        if let host {
+            host.rootView = view
+            setNeedsLayout()
+            return
+        }
+        let controller = UIHostingController(rootView: view)
+        controller.view.backgroundColor = .clear
+        controller.view.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(controller.view)
+        NSLayoutConstraint.activate([
+            controller.view.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            controller.view.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            controller.view.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
+            controller.view.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor),
+        ])
+        host = controller
+    }
+
+    override func systemLayoutSizeFitting(_ targetSize: CGSize,
+                                          withHorizontalFittingPriority horizontalFittingPriority: UILayoutPriority,
+                                          verticalFittingPriority: UILayoutPriority) -> CGSize {
+        guard let host else {
+            return super.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: horizontalFittingPriority,
+                                                 verticalFittingPriority: verticalFittingPriority)
+        }
+        let margins = contentView.directionalLayoutMargins
+        let width = max(1, targetSize.width - margins.leading - margins.trailing)
+        let fitting = host.sizeThatFits(in: CGSize(width: width, height: .greatestFiniteMagnitude))
+        return CGSize(width: targetSize.width, height: fitting.height + margins.top + margins.bottom)
     }
 }
 

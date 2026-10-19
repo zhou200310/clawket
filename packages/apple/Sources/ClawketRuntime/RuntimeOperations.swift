@@ -112,7 +112,7 @@ extension RuntimeCoordinator {
         }
     }
 
-    private func catalogPage(params: JSONValue = .object([:]), scope: Scope, deadline: Duration) async throws -> JSONValue {
+    private func catalogPage(params: JSONValue = .object([:]), scope: Scope, deadline: CompatDuration) async throws -> JSONValue {
         let remaining = deadline - clock.now()
         guard remaining > .zero else { throw RuntimeFailure(.timeout, retryable: true) }
         let response = try await rpc("sessions.sync", params: params, timeout: min(.seconds(20), remaining), scope: scope)
@@ -264,7 +264,7 @@ extension RuntimeCoordinator {
         try await selectLegacyModel(id: id, provider: provider, sessionKey: sessionKey)
     }
 
-    func rpc(_ method: String, params: JSONValue = .object([:]), timeout: Duration = .seconds(20), scope: Scope) async throws -> JSONValue {
+    func rpc(_ method: String, params: JSONValue = .object([:]), timeout: CompatDuration = .seconds(20), scope: Scope) async throws -> JSONValue {
         try assertCurrent(scope)
         guard let transport else { throw RuntimeFailure(.notConnected) }
         // Preserve the typed transport failure until the public operation boundary.

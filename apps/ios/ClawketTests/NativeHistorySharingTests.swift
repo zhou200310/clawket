@@ -56,8 +56,8 @@ final class NativeHistorySharingTests: XCTestCase {
             runtime: RuntimeCoordinator(credentials: HistoryUnusedCredentials()), exports: exports, current: current)
     }
     private func preparedURL(_ gate: HistoryPausedExport) async throws -> URL {
-        let deadline = ContinuousClock.now + .seconds(3)
-        while ContinuousClock.now < deadline {
+        let deadline = Date().addingTimeInterval(3)
+        while Date() < deadline {
             if let url = await gate.fileURL { return url }
             await Task.yield()
         }

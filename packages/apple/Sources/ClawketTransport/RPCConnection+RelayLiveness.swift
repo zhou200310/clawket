@@ -2,7 +2,7 @@ import Foundation
 
 extension RPCConnection {
     /// Remaining protection on this exact socket, not health or permission to retry.
-    func transferGrace(generation: ConnectionGeneration) -> Duration {
+    func transferGrace(generation: ConnectionGeneration) -> CompatDuration {
         guard current?.generation == generation, current?.liveness.transferHintNegotiated == true,
               state == .ready || state == .handshaking else { return .zero }
         return current?.liveness.transfer.grace(at: clock.now()) ?? .zero
@@ -103,7 +103,7 @@ extension RPCConnection {
         return true
     }
 
-    func scheduleClientPing(_ generation: ConnectionGeneration, delay: Duration = .seconds(5), completingTransfer: Bool = false) {
+    func scheduleClientPing(_ generation: ConnectionGeneration, delay: CompatDuration = .seconds(5), completingTransfer: Bool = false) {
         guard current?.generation == generation, foreground, state == .ready,
               current?.liveness.clientPingNegotiated == true,
               current?.liveness.pingTimer == nil, current?.liveness.pendingProbe == nil else { return }
@@ -183,7 +183,7 @@ extension RPCConnection {
         if failed { fail(generation, code: .socketFailure) }
     }
 
-    private func clientPongTimeoutDelay(_ id: UUID, generation: ConnectionGeneration) -> Duration? {
+    private func clientPongTimeoutDelay(_ id: UUID, generation: ConnectionGeneration) -> CompatDuration? {
         guard current?.generation == generation, foreground, state == .ready,
               let pending = current?.liveness.pendingProbe, pending.id == id else { return nil }
         let grace = transferGrace(generation: generation)

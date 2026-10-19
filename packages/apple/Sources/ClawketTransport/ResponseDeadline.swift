@@ -3,15 +3,15 @@ import Foundation
 /// An ordinary response window, extended only by an observed same-socket transfer.
 /// This value contains no socket authority and never establishes peer health.
 struct ResponseDeadline: Sendable, Equatable {
-    private let ordinaryDeadline: Duration
-    private let absoluteDeadline: Duration
-    private let timeout: Duration
-    private var latestNow: Duration
+    private let ordinaryDeadline: CompatDuration
+    private let absoluteDeadline: CompatDuration
+    private let timeout: CompatDuration
+    private var latestNow: CompatDuration
     private var deferred = false
-    private var responseDeadline: Duration?
+    private var responseDeadline: CompatDuration?
     private var expired = false
 
-    init(startedAt: Duration, timeout: Duration) {
+    init(startedAt: CompatDuration, timeout: CompatDuration) {
         self.timeout = max(.zero, timeout)
         ordinaryDeadline = startedAt + max(.zero, timeout)
         absoluteDeadline = startedAt + max(.seconds(90), timeout)
@@ -21,7 +21,7 @@ struct ResponseDeadline: Sendable, Equatable {
 
     /// Recheck at delivery as well as in a timer: suspension can delay callbacks.
     /// Once expired, a clock rollback or a later transfer cannot revive this wait.
-    mutating func remaining(at now: Duration, transferGrace: Duration = .zero) -> Duration {
+    mutating func remaining(at now: CompatDuration, transferGrace: CompatDuration = .zero) -> CompatDuration {
         latestNow = max(latestNow, now)
         guard !expired else { return .zero }
         let now = latestNow

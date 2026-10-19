@@ -149,9 +149,9 @@ final class NativeSheetHandoffTests: XCTestCase {
     @MainActor private func waitUntil(_ fixture: Fixture, _ stage: String,
         file: StaticString = #filePath, line: UInt = #line, _ condition: () -> Bool) async throws {
         print("Modal stage started: \(stage)")
-        let deadline = ContinuousClock.now + .seconds(10)
+        let deadline = Date().addingTimeInterval(10)
         while !(condition() && fixture.stable) {
-            guard ContinuousClock.now < deadline else {
+            guard Date() < deadline else {
                 let state = fixture.controllers.map {
                     "\(type(of: $0)):presenting=\($0.isBeingPresented),dismissing=\($0.isBeingDismissed)"
                 }.joined(separator: ";")
@@ -159,7 +159,7 @@ final class NativeSheetHandoffTests: XCTestCase {
                 throw WaitFailure.timeout
             }
             fixture.window.layoutIfNeeded(); CATransaction.flush()
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(nanoseconds: 10_000_000)
         }
         print("Modal stage completed: \(stage)")
     }

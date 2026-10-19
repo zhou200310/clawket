@@ -191,8 +191,8 @@ struct MediaLibraryTests {
         let gate = ChunkGate()
         let task = Task { try await library.cacheArtifact(key: key, name: "result.txt", mimeType: "text/plain", size: 2) { _ in try await gate.read() } }
         defer { task.cancel() }
-        let deadline = ContinuousClock.now + .seconds(3)
-        while !(await gate.entered) { guard ContinuousClock.now < deadline else { throw MediaFailure.cancelled }; await Task.yield() }
+        let deadline = Date().addingTimeInterval(3)
+        while !(await gate.entered) { guard Date() < deadline else { throw MediaFailure.cancelled }; await Task.yield() }
         await library.invalidateArtifacts(connectionID: "a")
         await #expect(throws: CancellationError.self) { try await task.value }
         let replacement = try await library.cacheArtifact(key: key, name: "result.txt", mimeType: "text/plain", size: 2) { _ in Data([1, 2]) }

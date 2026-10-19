@@ -237,6 +237,7 @@ final class NativeReadingLayoutTests: XCTestCase {
         XCTAssertFalse(descendants(host.view, of: UIButton.self).contains { $0.accessibilityIdentifier?.hasPrefix("copy-code-") == true })
     }
 
+    @available(iOS 16.0, *)
     @MainActor func testConversationHeightChangesPreserveNativeNavigationEditorAndReadingForEveryWorkState() async throws {
         let route = ConversationID(connectionID: "layout", agentID: "agent", sessionID: "compact-work")
         let original = "A retained draft 中文 e\u{0301}\nSecond line"
@@ -289,6 +290,7 @@ final class NativeReadingLayoutTests: XCTestCase {
         }
     }
 
+    @available(iOS 16.0, *)
     @MainActor func testConstrainedNativeNavigationAndEditorRemainBoundedAcrossWorkAvailabilityChanges() async throws {
         let route = ConversationID(connectionID: "layout", agentID: "agent", sessionID: "work-toolbar")
         let model = ClientPresentation()
@@ -449,7 +451,7 @@ final class NativeReadingLayoutTests: XCTestCase {
             settledFrames = stable && table.window === window && abs(table.contentOffset.y - bottom) <= 2 ? settledFrames + 1 : 0
             lastGeometry = geometry
             if settledFrames >= 3 { break }
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(nanoseconds: 10_000_000)
         }
         XCTAssertTrue(descendants(host.view, of: UITableView.self).first === table)
         XCTAssertTrue(following); XCTAssertEqual(captures.last?.followsBottom, true)
@@ -502,7 +504,7 @@ final class NativeReadingLayoutTests: XCTestCase {
                 for _ in 0..<20 {
                     table.layoutIfNeeded(); CATransaction.flush()
                     if table.cellForRow(at: IndexPath(row: 0, section: 0)) != nil { break }
-                    try await Task.sleep(for: .milliseconds(10))
+                    try await Task.sleep(nanoseconds: 10_000_000)
                 }
                 XCTAssertNotNil(table.cellForRow(at: IndexPath(row: 0, section: 0)))
                 let height = table.rectForRow(at: IndexPath(row: 0, section: 0)).height
@@ -592,7 +594,7 @@ final class NativeReadingLayoutTests: XCTestCase {
         for _ in 0..<20 {
             table.layoutIfNeeded(); CATransaction.flush()
             if table.cellForRow(at: IndexPath(row: 0, section: 0)) != nil { break }
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(nanoseconds: 10_000_000)
         }
         let cell = try XCTUnwrap(table.cellForRow(at: IndexPath(row: 0, section: 0)))
         let reading = try XCTUnwrap(descendants(cell, of: UITextView.self).first)
@@ -680,7 +682,7 @@ final class NativeReadingLayoutTests: XCTestCase {
             host.view.setNeedsLayout()
             host.view.layoutIfNeeded()
             CATransaction.flush()
-            try? await Task.sleep(for: .milliseconds(10))
+            try? await Task.sleep(nanoseconds: 10_000_000)
         }
         XCTAssertNotNil(host.view.window)
     }
@@ -700,6 +702,7 @@ final class NativeReadingLayoutTests: XCTestCase {
     }
 }
 
+@available(iOS 16.0, *)
 @MainActor
 private struct CompactWorkNavigationFixture: View {
     @ObservedObject var model: ClientPresentation

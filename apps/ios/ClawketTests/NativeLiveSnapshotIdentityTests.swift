@@ -491,9 +491,9 @@ final class NativeLiveSnapshotIdentityTests: XCTestCase {
         XCTAssertFalse(loaded.document.runs[1].status.isTerminal)
         XCTAssertTrue(loaded.hasFinishedRun(route, epoch: epoch, runID: "run"))
         loaded.flush()
-        let savedRevision = loaded.document.revision, deadline = ContinuousClock.now + .seconds(3)
+        let savedRevision = loaded.document.revision, deadline = Date().addingTimeInterval(3)
         while (try await coldStore.read()?.value.revision ?? -1) < savedRevision {
-            guard ContinuousClock.now < deadline else { throw NativeHistoryFailure.unavailable }
+            guard Date() < deadline else { throw NativeHistoryFailure.unavailable }
             await Task.yield()
         }
         let journal = NativeTaskJournal(store: try NativeJournalStore(directory: directory), onFailure: { XCTFail("Unexpected final cold read failure") })

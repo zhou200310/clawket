@@ -122,11 +122,11 @@ actor RelayTestPeer: WebSocketConnection {
 final class RelayTestClock: TransportClock, @unchecked Sendable {
     private let ignoreCancellation: Bool
     private let lock = NSLock()
-    private var instant: Duration = .zero
-    private var waiters: [UUID: (Duration, CheckedContinuation<Void, any Error>)] = [:]
+    private var instant: CompatDuration = .zero
+    private var waiters: [UUID: (CompatDuration, CheckedContinuation<Void, any Error>)] = [:]
     init(ignoreCancellation: Bool = false) { self.ignoreCancellation = ignoreCancellation }
-    func now() -> Duration { lock.withLock { instant } }
-    func sleep(for duration: Duration) async throws {
+    func now() -> CompatDuration { lock.withLock { instant } }
+    func sleep(for duration: CompatDuration) async throws {
         try Task.checkCancellation()
         guard duration > .zero else { return }
         let id = UUID()
@@ -143,15 +143,15 @@ final class RelayTestClock: TransportClock, @unchecked Sendable {
             value?.1.resume(throwing: CancellationError())
         }
     }
-    func advance(by duration: Duration, fireTimers: Bool = true) {
+    func advance(by duration: CompatDuration, fireTimers: Bool = true) {
         let ready = lock.withLock {
             instant += duration
-            guard fireTimers else { return [UUID: (Duration, CheckedContinuation<Void, any Error>)]() }
+            guard fireTimers else { return [UUID: (CompatDuration, CheckedContinuation<Void, any Error>)]() }
             let ready = waiters.filter { $0.value.0 <= instant }
             for id in ready.keys { waiters.removeValue(forKey: id) }
             return ready
         }
         for value in ready.values { value.1.resume() }
     }
-    func hasDeadline(_ deadline: Duration) -> Bool { lock.withLock { waiters.values.contains { $0.0 == deadline } } }
+    func hasDeadline(_ deadline: CompatDuration) -> Bool { lock.withLock { waiters.values.contains { $0.0 == deadline } } }
 }

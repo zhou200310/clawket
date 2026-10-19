@@ -396,8 +396,9 @@ struct ApprovalContentView: View {
                 if let scope = approval.scope { Text(scope).font(.caption).foregroundStyle(.secondary) }
                 if let expiry = approval.expiryLabel { Text(expiry).font(.caption).foregroundStyle(.secondary) }
                 if let error = approval.error { Label(error, systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(.orange) }
-                ViewThatFits(in: .horizontal) {
+                CompatViewThatFits(in: .horizontal) {
                     HStack(spacing: 10) { decisionButtons }
+                } fallback: {
                     VStack(alignment: .leading, spacing: 10) { decisionButtons }
                 }
             }

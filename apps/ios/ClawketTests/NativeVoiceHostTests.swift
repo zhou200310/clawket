@@ -286,8 +286,8 @@ final class NativeVoiceHostTests: XCTestCase, @unchecked Sendable {
     }
 
     @MainActor private func eventually(_ condition: () async -> Bool) async {
-        let deadline = ContinuousClock.now.advanced(by: .seconds(3))
-        while ContinuousClock.now < deadline { if await condition() { return }; await Task.yield() }
+        let deadline = Date().addingTimeInterval(3)
+        while Date() < deadline { if await condition() { return }; await Task.yield() }
         XCTFail("Voice host fixture condition was not reached")
     }
     @MainActor private func attach<Content: View>(_ host: UIHostingController<Content>) -> UIWindow {
@@ -295,7 +295,7 @@ final class NativeVoiceHostTests: XCTestCase, @unchecked Sendable {
         window.rootViewController = host; window.isHidden = false; return window
     }
     @MainActor private func layout<Content: View>(_ host: UIHostingController<Content>) async {
-        for _ in 0..<8 { host.view.setNeedsLayout(); host.view.layoutIfNeeded(); CATransaction.flush(); try? await Task.sleep(for: .milliseconds(10)) }
+        for _ in 0..<8 { host.view.setNeedsLayout(); host.view.layoutIfNeeded(); CATransaction.flush(); try? await Task.sleep(nanoseconds: 10_000_000) }
     }
     @MainActor private func descendants<T: UIView>(_ view: UIView, of type: T.Type) -> [T] {
         (view as? T).map { [$0] } ?? view.subviews.flatMap { descendants($0, of: type) }

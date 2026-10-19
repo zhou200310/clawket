@@ -73,7 +73,7 @@ public actor RuntimeCoordinator {
         let scope: Scope
         let continuation: CheckedContinuation<RelayControl, any Error>
         let timeout: Task<Void, Never>
-        let deadline: Duration
+        let deadline: CompatDuration
     }
 
     public init(credentials: any DeviceCredentialProvider,
@@ -343,7 +343,7 @@ public actor RuntimeCoordinator {
             let pending = waiters; waiters.removeAll()
             for waiter in pending.values { waiter.resume(throwing: failure) }
         } else {
-            let delay: Duration
+            let delay: CompatDuration
             if unavailable && connection?.backendKind != .openclaw {
                 if previouslyReady && unavailableAttempts < 4 { delay = .seconds(2 * (1 << min(unavailableAttempts, 2))) }
                 else { delay = .seconds(min(120, 30 * (1 << min(max(0, unavailableAttempts - (previouslyReady ? 4 : 0)), 2)))) }

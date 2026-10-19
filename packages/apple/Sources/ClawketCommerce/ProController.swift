@@ -47,7 +47,7 @@ public final class ProController: ObservableObject {
 
     public init(mode: ProAccessMode, source: (any ProStoreSource)?,
                 clock: @escaping () -> Double = { Date().timeIntervalSince1970 * 1_000 },
-                delay: @escaping @Sendable (Double) async throws -> Void = { try await Task.sleep(for: .seconds($0)) }) {
+                delay: @escaping @Sendable (Double) async throws -> Void = { try await Task.sleep(nanoseconds: UInt64(max(0, $0) * 1_000_000_000)) }) {
         self.mode = mode; self.source = source; self.clock = clock; self.delay = delay
         if mode == .community { phase = .unavailable }
         if let source {

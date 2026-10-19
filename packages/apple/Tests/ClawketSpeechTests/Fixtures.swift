@@ -24,10 +24,10 @@ final class SpeechFixture: @unchecked Sendable {
 
 final class SpeechTestClock: TransportClock, @unchecked Sendable {
     private let lock = NSLock()
-    private var value: Duration = .zero
-    private var waits: [UUID: (Duration, CheckedContinuation<Void, any Error>)] = [:]
-    func now() -> Duration { lock.lock(); defer { lock.unlock() }; return value }
-    func sleep(for duration: Duration) async throws {
+    private var value: CompatDuration = .zero
+    private var waits: [UUID: (CompatDuration, CheckedContinuation<Void, any Error>)] = [:]
+    func now() -> CompatDuration { lock.lock(); defer { lock.unlock() }; return value }
+    func sleep(for duration: CompatDuration) async throws {
         let id = UUID()
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
@@ -42,20 +42,20 @@ final class SpeechTestClock: TransportClock, @unchecked Sendable {
         lock.lock(); let pending = waits.removeValue(forKey: id); lock.unlock()
         pending?.1.resume(throwing: CancellationError())
     }
-    func advance(_ duration: Duration) {
+    func advance(_ duration: CompatDuration) {
         lock.lock(); value += duration
         let due = waits.filter { $0.value.0 <= value }
         for id in due.keys { waits.removeValue(forKey: id) }; lock.unlock()
         due.values.forEach { $0.1.resume() }
     }
-    func advanceWithoutWaking(_ duration: Duration) { lock.lock(); value += duration; lock.unlock() }
+    func advanceWithoutWaking(_ duration: CompatDuration) { lock.lock(); value += duration; lock.unlock() }
     var pendingCount: Int { lock.lock(); defer { lock.unlock() }; return waits.count }
 }
 
 final class SpeechPacingClock: TransportClock, Sendable {
     let base = SpeechTestClock()
-    func now() -> Duration { base.now() }
-    func sleep(for duration: Duration) async throws {
+    func now() -> CompatDuration { base.now() }
+    func sleep(for duration: CompatDuration) async throws {
         if duration < .seconds(1) { base.advance(duration); await Task.yield(); try Task.checkCancellation() }
         else { try await base.sleep(for: duration) }
     }
@@ -126,8 +126,8 @@ actor SpeechFakeDriver: SpeechAudioDriver {
 }
 
 func speechEventually(_ predicate: @escaping () async -> Bool, sourceLocation: SourceLocation = #_sourceLocation) async {
-    let deadline = ContinuousClock.now.advanced(by: .seconds(3))
-    while ContinuousClock.now < deadline {
+    let deadline = Date().addingTimeInterval(3)
+    while Date() < deadline {
         if await predicate() { return }; await Task.yield()
     }
     Issue.record("Speech fixture condition was not reached", sourceLocation: sourceLocation)

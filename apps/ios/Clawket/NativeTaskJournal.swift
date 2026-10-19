@@ -12,7 +12,7 @@ final class NativeTaskJournal {
     private var writable = false
     private var saveTask: Task<Void, Never>?
     private var saveToken = UUID()
-    private var observed: [String: ContinuousClock.Instant] = [:]
+    private var observed: [String: Date] = [:]
     private var liveIDs: Set<String> = []
     private var historyScopes: [NativeHistoryScope: UUID] = [:]
 
@@ -178,7 +178,7 @@ final class NativeTaskJournal {
         saveTask = Task {
             defer { if token == saveToken { saveTask = nil } }
             do {
-                if !immediate { try await Task.sleep(for: .milliseconds(300)) }
+                if !immediate { try await Task.sleep(nanoseconds: 300_000_000) }
                 try Task.checkCancellation(); try await store.write(snapshot)
             } catch is CancellationError { }
             catch {
@@ -212,14 +212,13 @@ final class NativeTaskJournal {
         document.runs[index].clock = clock
     }
     private func observe(_ id: String, clock: inout NativeWorkClock, terminal: Bool) {
-        let now = ContinuousClock.now
+        let now = Date()
         if observed[id] == nil, !terminal, clock.observedStartedAtMs == nil {
             observed[id] = now; clock.observedStartedAtMs = Int64(Date().timeIntervalSince1970 * 1_000)
         }
         if terminal, let start = observed.removeValue(forKey: id) {
-            let elapsed = start.duration(to: now).components
             clock.observedFinishedAtMs = Int64(Date().timeIntervalSince1970 * 1_000)
-            clock.observedDurationMs = elapsed.seconds * 1_000 + elapsed.attoseconds / 1_000_000_000_000_000
+            clock.observedDurationMs = Int64(now.timeIntervalSince(start) * 1_000)
         }
     }
     private func scope(_ route: ConversationID) -> NativeJournalScope {

@@ -18,7 +18,7 @@ private actor HistoryBlockedRead {
     var entered = false
     func read() async throws -> RuntimeHistory {
         entered = true
-        try await Task.sleep(for: .seconds(60))
+        try await Task.sleep(nanoseconds: 60_000_000_000)
         throw NativeHistoryFailure.invalid
     }
 }
@@ -114,13 +114,13 @@ final class NativeHistoryExportTests: XCTestCase, @unchecked Sendable {
     func testCancellingAClosedExportCancelsItsBlockedReadImmediately() async throws {
         let gate = HistoryBlockedRead()
         do {
-            _ = try await NativeHistoryExportLoader.load(key: "logical", title: "Title", deadline: ContinuousClock.now - .seconds(1)) { _, _, _ in try await gate.read() }
+            _ = try await NativeHistoryExportLoader.load(key: "logical", title: "Title", deadline: Date().addingTimeInterval(-1)) { _, _, _ in try await gate.read() }
             XCTFail("An already expired absolute deadline cannot enter a read")
         } catch { XCTAssertEqual(error as? NativeHistoryExportFailure, .timedOut) }
         let notEntered = await gate.entered; XCTAssertFalse(notEntered)
         let pending = Task { try await NativeHistoryExportLoader.load(key: "logical", title: "Title") { _, _, _ in try await gate.read() } }
-        let deadline = ContinuousClock.now + .seconds(3)
-        while !(await gate.entered), ContinuousClock.now < deadline { await Task.yield() }
+        let deadline = Date().addingTimeInterval(3)
+        while !(await gate.entered), Date() < deadline { await Task.yield() }
         let entered = await gate.entered; XCTAssertTrue(entered)
         pending.cancel()
         do { _ = try await pending.value; XCTFail("A closed export cannot publish") } catch { }

@@ -6,7 +6,7 @@ import UIKit
 struct NativeCopyFeedbackEffects {
     var delay: @MainActor () async throws -> Void
     var succeeded: @MainActor (String) -> Void
-    static let system = Self(delay: { try await Task.sleep(for: .milliseconds(1_500)) }, succeeded: { title in
+    static let system = Self(delay: { try await Task.sleep(nanoseconds: 1_500_000_000) }, succeeded: { title in
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         UIAccessibility.post(notification: .announcement, argument: title)
     })

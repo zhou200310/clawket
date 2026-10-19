@@ -88,13 +88,13 @@ actor Credentials: DeviceCredentialProvider {
 }
 
 final class TestClock: TransportClock, @unchecked Sendable {
-    struct Waiter { let deadline: Duration; let continuation: CheckedContinuation<Void, any Error> }
+    struct Waiter { let deadline: CompatDuration; let continuation: CheckedContinuation<Void, any Error> }
     private let lock = NSLock()
-    private var time = Duration.zero
+    private var time = CompatDuration.zero
     private var waiters: [UUID: Waiter] = [:]
-    func now() -> Duration { lock.lock(); defer { lock.unlock() }; return time }
-    var pendingDelays: [Duration] { lock.lock(); defer { lock.unlock() }; return waiters.values.map { $0.deadline - time } }
-    func sleep(for duration: Duration) async throws {
+    func now() -> CompatDuration { lock.lock(); defer { lock.unlock() }; return time }
+    var pendingDelays: [CompatDuration] { lock.lock(); defer { lock.unlock() }; return waiters.values.map { $0.deadline - time } }
+    func sleep(for duration: CompatDuration) async throws {
         let id = UUID()
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
@@ -104,7 +104,7 @@ final class TestClock: TransportClock, @unchecked Sendable {
             }
         } onCancel: { self.cancel(id) }
     }
-    func advance(_ duration: Duration) {
+    func advance(_ duration: CompatDuration) {
         lock.lock(); time += duration
         let ready = waiters.filter { $0.value.deadline <= time }
         for id in ready.keys { waiters.removeValue(forKey: id) }
@@ -125,9 +125,9 @@ func read(_ coordinator: RuntimeCoordinator, into recorder: Events) -> Task<Void
     Task { do { for try await value in coordinator.events { await recorder.append(value) } } catch {} }
 }
 func eventually(_ condition: @escaping () async -> Bool) async throws {
-    let deadline = ContinuousClock.now + .seconds(3)
+    let deadline = Date().addingTimeInterval(3)
     while !(await condition()) {
-        guard ContinuousClock.now < deadline else { throw RuntimeFailure(.timeout) }
+        guard Date() < deadline else { throw RuntimeFailure(.timeout) }
         await Task.yield()
     }
 }

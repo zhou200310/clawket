@@ -12,7 +12,7 @@ struct ClientSheetView: View {
     @State private var modelReviewID = UUID()
 
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             Group {
                 switch item {
                 case let .sessions(route): sessions(route)
@@ -35,11 +35,11 @@ struct ClientSheetView: View {
             }
         }
         .sheet(item: $management) { request in
-            NavigationStack {
+            CompatNavigationStack {
                 NativeSessionManagementView(model: model, route: request.route, reviewID: request.id, onIntent: onIntent)
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { management = nil } } }
             }
-            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+            .compatPresentationDetents([.medium, .large]).compatPresentationDragIndicator(.visible)
             .onDisappear { onIntent(.dismissSessionManagement(reviewID: request.id)) }
             .onChange(of: model.sessionManagement?.id) { id in
                 if id == nil, management?.id == request.id { management = nil }
@@ -52,8 +52,8 @@ struct ClientSheetView: View {
         .onChange(of: model.sessionManagement?.id) { id in
             if case .management = item, id == nil { dismiss() }
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .compatPresentationDetents([.medium, .large])
+        .compatPresentationDragIndicator(.visible)
         .onChange(of: model.selectedConversation) { route in
             if case let .catalog(id) = item, let route, route.isConcrete,
                route.connectionID == id.connectionID, route.agentID == id.agentID { dismiss() }

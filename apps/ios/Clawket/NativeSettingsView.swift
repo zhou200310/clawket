@@ -7,7 +7,7 @@ struct NativeSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var proPresenterID = UUID()
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             List {
                 Section {
                     NativeProSettingsCard(client: client, presenterID: proPresenterID)
@@ -37,7 +37,7 @@ struct NativeSettingsView: View {
                     } label: { Label("System settings", systemImage: "gearshape") }
                 }
                 Section {
-                    LabeledContent("Version") {
+                    CompatLabeledContent("Version") {
                         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
                         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
                         Text(verbatim: "\(version) (\(build))").foregroundStyle(.secondary)
@@ -106,7 +106,7 @@ private struct NativeChatAppearanceView: View {
             }
             Section {
                 Stepper(value: $draft.chatFontSize, in: 12...20) {
-                    LabeledContent("Chat font size") { Text(draft.chatFontSize, format: .number).monospacedDigit() }
+                    CompatLabeledContent("Chat font size") { Text(draft.chatFontSize, format: .number).monospacedDigit() }
                 }
                 Toggle("Show agent avatar", isOn: $draft.showAgentAvatar)
             }

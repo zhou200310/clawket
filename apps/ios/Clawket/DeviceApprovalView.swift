@@ -1,6 +1,7 @@
 import ClawketRuntime
 import SwiftUI
 import UIKit
+import ClawketUI
 
 /// Matching a display snapshot can open/retry its connection, never approve a device.
 enum NativeDeviceApprovalPolicy {
@@ -28,7 +29,7 @@ struct DeviceApprovalView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             List {
                 if let context = client.deviceApproval, context.connectionID == connectionID,
                    connectionID == client.activeConnectionID {

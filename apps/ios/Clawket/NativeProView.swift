@@ -11,7 +11,7 @@ struct NativeProView: View {
     private let silver = LinearGradient(colors: [.white, Color(red: 0.80, green: 0.84, blue: 0.86),
         Color(red: 0.42, green: 0.47, blue: 0.50), Color(red: 0.90, green: 0.92, blue: 0.94)], startPoint: .topLeading, endPoint: .bottomTrailing)
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             ScrollView {
                 VStack(spacing: 26) {
                     hero

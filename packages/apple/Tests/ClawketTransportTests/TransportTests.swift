@@ -506,10 +506,10 @@ private actor TestSocket: WebSocketConnection {
 
 private final class TestClock: TransportClock, @unchecked Sendable {
     private let lock = NSLock()
-    private var instant = Duration.zero
-    private var waiters: [UUID: (Duration, CheckedContinuation<Void, any Error>)] = [:]
-    func now() -> Duration { lock.withLock { instant } }
-    func sleep(for duration: Duration) async throws {
+    private var instant = CompatDuration.zero
+    private var waiters: [UUID: (CompatDuration, CheckedContinuation<Void, any Error>)] = [:]
+    func now() -> CompatDuration { lock.withLock { instant } }
+    func sleep(for duration: CompatDuration) async throws {
         let id = UUID()
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
@@ -523,7 +523,7 @@ private final class TestClock: TransportClock, @unchecked Sendable {
             waiter?.1.resume(throwing: CancellationError())
         }
     }
-    func advance(by duration: Duration) {
+    func advance(by duration: CompatDuration) {
         let ready = lock.withLock {
             instant += duration
             let ready = waiters.filter { $0.value.0 <= instant }

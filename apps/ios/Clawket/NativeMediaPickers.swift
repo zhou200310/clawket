@@ -118,7 +118,7 @@ struct NativeMediaPicker: View {
             case .camera:
                 if cameraAllowed == true { CameraPicker(client: client, request: request) }
                 else if cameraAllowed == false {
-                    NavigationStack {
+                    CompatNavigationStack {
                         VStack(spacing: 18) {
                             Image(systemName: "camera").font(.largeTitle).foregroundStyle(.secondary)
                             Text("Camera unavailable").font(.title3.bold())

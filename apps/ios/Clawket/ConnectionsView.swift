@@ -1,5 +1,6 @@
 import ClawketRuntime
 import SwiftUI
+import ClawketUI
 
 struct ConnectionsView: View {
     @ObservedObject var client: NativeAppModel
@@ -11,7 +12,7 @@ struct ConnectionsView: View {
     var body: some View {
         Group {
             if embedded { content }
-            else { NavigationStack { content } }
+            else { CompatNavigationStack { content } }
         }.nativePro(controller: client.pro, presenterID: proPresenterID)
     }
     @MainActor func addConnection() {
@@ -56,7 +57,7 @@ struct ConnectionsView: View {
                 }
                 Section {
                     let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
-                    LabeledContent("Version", value: String(localized: "\(version) · Native development"))
+                    CompatLabeledContent("Version", value: String(localized: "\(version) · Native development"))
                     Text("This development app has its own connections and storage.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }

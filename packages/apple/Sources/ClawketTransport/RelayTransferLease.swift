@@ -4,12 +4,12 @@ import Foundation
 struct RelayTransferLease: Sendable {
     static let minimumBytes = 128 * 1_024
     static let maximumBytes = 8 * 1_024 * 1_024
-    static let budget: Duration = .seconds(90)
+    static let budget: CompatDuration = .seconds(90)
     private(set) var generation: UInt64 = 0
     private(set) var incomingBytes: Int?
-    private var deadline: Duration?
+    private var deadline: CompatDuration?
     private var expired = false
-    private var latestNow: Duration = .zero
+    private var latestNow: CompatDuration = .zero
     private var outgoingAccepted = false
     private var dispatches: Set<UUID> = []
     private var committedWindow = false
@@ -18,7 +18,7 @@ struct RelayTransferLease: Sendable {
     var canConfirm: Bool { incomingBytes == nil && dispatches.isEmpty }
     var pendingDispatchCount: Int { dispatches.count }
 
-    mutating func remaining(at now: Duration) -> Duration {
+    mutating func remaining(at now: CompatDuration) -> CompatDuration {
         latestNow = max(latestNow, now)
         guard let deadline, !expired else { return .zero }
         let remaining = deadline - latestNow
@@ -30,13 +30,13 @@ struct RelayTransferLease: Sendable {
         return remaining
     }
 
-    mutating func grace(at now: Duration) -> Duration {
+    mutating func grace(at now: CompatDuration) -> CompatDuration {
         let remaining = remaining(at: now)
         return incomingBytes != nil || outgoingAccepted || !dispatches.isEmpty ? remaining : .zero
     }
 
     @discardableResult
-    mutating func beginIncoming(bytes: Int, at now: Duration) -> Bool {
+    mutating func beginIncoming(bytes: Int, at now: CompatDuration) -> Bool {
         guard Self.isLargeFrame(bytes) else { return false }
         begin(at: now)
         incomingBytes = bytes
@@ -44,7 +44,7 @@ struct RelayTransferLease: Sendable {
         return true
     }
 
-    mutating func beginOutgoing(bytes: Int, at now: Duration) -> UUID? {
+    mutating func beginOutgoing(bytes: Int, at now: CompatDuration) -> UUID? {
         guard Self.isLargeFrame(bytes) else { return nil }
         begin(at: now)
         let token = UUID()
@@ -73,14 +73,14 @@ struct RelayTransferLease: Sendable {
     }
 
     /// Only the actor's exact pending nonce may call this after a fresh round trip.
-    mutating func confirmProbe(generation: UInt64, at now: Duration) -> Bool {
+    mutating func confirmProbe(generation: UInt64, at now: CompatDuration) -> Bool {
         _ = remaining(at: now)
         guard self.generation == generation, canConfirm else { return false }
         deadline = nil; expired = false; outgoingAccepted = false; committedWindow = false
         return true
     }
 
-    private mutating func begin(at now: Duration) {
+    private mutating func begin(at now: CompatDuration) {
         _ = remaining(at: now)
         latestNow = max(latestNow, now)
         generation &+= 1

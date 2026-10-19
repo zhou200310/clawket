@@ -97,7 +97,7 @@ final class NativeQuestionDraftStoreTests: XCTestCase, @unchecked Sendable {
         await values.suspendWrite()
         let write = Task { try await store.save(response("in flight"), key: key(1), revision: 1) }
         for _ in 0..<2_000 {
-            if await values.writing { break }; try await Task.sleep(for: .milliseconds(2))
+            if await values.writing { break }; try await Task.sleep(nanoseconds: 2_000_000)
         }
         let writing = await values.writing; XCTAssertTrue(writing)
         let retirement = Task { try await store.retire(key: key(1), revision: 2) }

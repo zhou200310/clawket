@@ -25,13 +25,13 @@ struct ConsentRegistry: Sendable {
         var value: ConsentValue
         let scope: RuntimeCoordinator.Scope
         var revision: UInt64
-        let deadline: Duration?
+        let deadline: CompatDuration?
         let bytes: Int
         var dispatch: Task<JSONValue, any Error>? = nil
     }
     struct Confirmation: Sendable {
         let reference: RuntimeRequestReference
-        let deadline: Duration
+        let deadline: CompatDuration
     }
     var records: [UUID: Record] = [:]
     var keys: [ConsentKey: UUID] = [:]

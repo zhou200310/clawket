@@ -12,7 +12,7 @@ struct NativeVoiceSheet: View {
     @State private var ownedAttempt: UUID?
 
     var body: some View {
-        NavigationStack {
+        CompatNavigationStack {
             List {
                 if let failure = voice.failure {
                     Section {
@@ -73,7 +73,7 @@ struct NativeVoiceSheet: View {
                 Button("Cancel", role: .cancel) { deleting = nil }
             }
         }
-        .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+        .compatPresentationDetents([.medium, .large]).compatPresentationDragIndicator(.visible)
         .onAppear {
             guard client.voiceSheet?.id == request.id, let id = request.attemptID,
                   let attempt = voice.attempt, attempt.id == id, attempt.recovery,

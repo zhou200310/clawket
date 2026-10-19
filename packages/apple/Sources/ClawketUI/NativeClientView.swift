@@ -17,25 +17,23 @@ public struct NativeClientView: View {
     }
 
     public var body: some View {
-        NavigationSplitView {
-            roster
-        } detail: {
-            if let route = model.selectedConversation {
-                if let conversation = model.conversations[route] {
-                    NativeConversationView(model: model, conversation: conversation,
-                                           draft: model.draft(for: route), obscured: sheet != nil, onIntent: onIntent,
-                                           showSheet: { sheet = $0 })
-                        .id(route)
-                } else {
-                    ProgressView("Opening conversation…")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color(uiColor: .systemBackground))
+        Group {
+            if #available(iOS 16.0, macOS 13.0, *) {
+                NavigationSplitView {
+                    roster
+                } detail: {
+                    detail
                 }
+                .navigationSplitViewStyle(.balanced)
             } else {
-                WelcomeContent(title: model.emptyTitle, detail: String(localized: "Choose an agent to continue a conversation."))
+                // iOS 15 has no NavigationSplitView: fall back to a single-column stack.
+                // Roster rows use CompatNavigationLink, which pushes the conversation.
+                NavigationView {
+                    roster
+                }
+                .navigationViewStyle(.stack)
             }
         }
-        .navigationSplitViewStyle(.balanced)
         .tint(model.appearance.accentColor)
         .sheet(item: $sheet) { item in
             ClientSheetView(item: item, model: model, onIntent: onIntent)
@@ -87,6 +85,29 @@ public struct NativeClientView: View {
         }
     }
 
+    @ViewBuilder
+    private var detail: some View {
+        if let route = model.selectedConversation {
+            conversationDestination(route)
+        } else {
+            WelcomeContent(title: model.emptyTitle, detail: String(localized: "Choose an agent to continue a conversation."))
+        }
+    }
+
+    @ViewBuilder
+    private func conversationDestination(_ route: ConversationID) -> some View {
+        if let conversation = model.conversations[route] {
+            NativeConversationView(model: model, conversation: conversation,
+                                   draft: model.draft(for: route), obscured: sheet != nil, onIntent: onIntent,
+                                   showSheet: { sheet = $0 })
+                .id(route)
+        } else {
+            ProgressView("Opening conversation…")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(uiColor: .systemBackground))
+        }
+    }
+
     private var roster: some View {
         List(selection: rosterSelectionBinding) {
             if model.agents.isEmpty {
@@ -133,7 +154,11 @@ public struct NativeClientView: View {
                         } else { switch agent.entryMode {
                         case let .conversation(route):
                             if route.isConcrete {
-                                NavigationLink(value: route) { AgentRow(agent: agent) }
+                                CompatNavigationLink(value: route) {
+                                    AgentRow(agent: agent)
+                                } destination: {
+                                    conversationDestination(route)
+                                }
                             }
                         case let .catalog(id):
                             Button {
@@ -477,8 +502,8 @@ struct NativeConversationView: View {
                 ScrollView(.vertical, showsIndicators: accessoryHeight > accessoryViewportHeight(geometry.size.height)) {
                     conversationAccessories(toolbarWork: toolbarWork)
                 }
-                .scrollBounceBehavior(.basedOnSize)
-                .scrollDismissesKeyboard(.never)
+                .compatScrollBounceBehavior(.basedOnSize)
+                .compatScrollDismissesKeyboard(.never)
                 .frame(height: accessoryViewportHeight(geometry.size.height))
                 NativeComposer(draft: draft, conversation: conversation, expanded: $expanded,
                                onIntent: { intent in

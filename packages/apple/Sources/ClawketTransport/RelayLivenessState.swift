@@ -4,7 +4,7 @@ struct RelayLivenessState: Sendable {
     struct Probe: Sendable {
         let id: UUID
         let nonce: String
-        let deadline: Duration
+        let deadline: CompatDuration
         let transferGeneration: UInt64
     }
     var clientPingNegotiated = false
@@ -15,7 +15,7 @@ struct RelayLivenessState: Sendable {
     var pingIsTransfer = false
     var pongTimer: Task<Void, Never>?
     var pendingProbe: Probe?
-    var lastPingAt: Duration?
+    var lastPingAt: CompatDuration?
     var dispatches: [UUID: Task<Void, Never>] = [:]
 
     mutating func pause() {
