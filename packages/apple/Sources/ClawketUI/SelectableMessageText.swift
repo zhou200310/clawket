@@ -2,10 +2,43 @@
 import SwiftUI
 import UIKit
 
-/// A real TextKit reading surface keeps partial selection, edit menus, links,
-/// VoiceOver text navigation and Speak Screen available on the iOS 16.4 baseline.
+/// Message body renderer. iOS 16+ keeps a real TextKit reading surface; iOS 15
+/// has no `sizeThatFits(_:uiView:context:)`, so a hosted text view collapses or
+/// explodes row heights. There we render with SwiftUI Text, which measures
+/// itself correctly and still supports selection.
+struct SelectableMessageText: View {
+    let text: String
+    var monospaced = false
+    var fontSize: Int = 17
+    var interpretsCodeFences = true
+    let onURL: (URL) -> Void
+    var onReadingInteraction: () -> Void = {}
+
+    var body: some View {
+        if #available(iOS 16.0, *) {
+            SelectableMessageTextRepresentable(text: text, monospaced: monospaced, fontSize: fontSize,
+                interpretsCodeFences: interpretsCodeFences, onURL: onURL, onReadingInteraction: onReadingInteraction)
+        } else {
+            Text(attributed)
+                .font(.system(size: CGFloat(fontSize), weight: .regular, design: monospaced ? .monospaced : .default))
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .textSelection(.enabled)
+                .accessibilityIdentifier("message-text")
+        }
+    }
+
+    private var attributed: AttributedString {
+        if let parsed = try? AttributedString(markdown: text,
+                options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
+            return parsed
+        }
+        return AttributedString(text)
+    }
+}
+
 @MainActor
-struct SelectableMessageText: UIViewRepresentable {
+struct SelectableMessageTextRepresentable: UIViewRepresentable {
     let text: String
     var monospaced = false
     var fontSize: Int = 17
