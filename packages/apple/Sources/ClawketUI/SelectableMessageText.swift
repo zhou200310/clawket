@@ -87,23 +87,8 @@ struct SelectableMessageText: UIViewRepresentable {
 @MainActor
 private final class ReadingTextView: UITextView {
     var onReadingInteraction: (() -> Void)?
-    private var lastLayoutWidth: CGFloat = 0
     override var intrinsicContentSize: CGSize {
-        if !isScrollEnabled, bounds.width > 1 {
-            let height = sizeThatFits(CGSize(width: bounds.width, height: 10_000)).height
-            return CGSize(width: UIView.noIntrinsicMetric, height: height.isFinite ? ceil(height) : 0)
-        }
-        return CGSize(width: UIView.noIntrinsicMetric, height: super.intrinsicContentSize.height)
-    }
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        // Before iOS 16 SwiftUI does not call sizeThatFits(_:uiView:context:),
-        // so the text view has to learn its own wrapping width instead.
-        let width = bounds.width
-        if !isScrollEnabled, width.isFinite, width > 1, abs(lastLayoutWidth - width) > 0.5 {
-            lastLayoutWidth = width
-            invalidateIntrinsicContentSize()
-        }
+        CGSize(width: UIView.noIntrinsicMetric, height: super.intrinsicContentSize.height)
     }
     override func accessibilityElementDidBecomeFocused() {
         super.accessibilityElementDidBecomeFocused()
