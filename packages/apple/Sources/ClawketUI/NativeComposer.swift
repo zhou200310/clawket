@@ -89,7 +89,7 @@ struct NativeComposer: View {
             }
             .padding(.horizontal, 4)
             .frame(minWidth: 0, maxWidth: .infinity)
-            .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .strokeBorder(Color(uiColor: .separator).opacity(0.13), lineWidth: 0.5)
@@ -102,7 +102,7 @@ struct NativeComposer: View {
         .frame(maxWidth: 790)
         .frame(maxWidth: .infinity)
         .frame(maxHeight: expanded ? .infinity : nil, alignment: .bottom)
-        .background(Color(uiColor: .systemBackground))
+        .background(Color.clear)
         .onPreferenceChange(NativeComposerHeightKey.self) { values in
             let measured = values.filter { $0.value.isFinite && $0.value >= 0 }
             guard measured.keys != contentHeights.keys || measured.contains(where: { abs($0.value - (contentHeights[$0.key] ?? 0)) > 0.5 }) else { return }
@@ -242,8 +242,13 @@ struct NativeComposer: View {
         } label: {
             Image(systemName: "arrow.up").font(.system(size: 17, weight: .semibold))
                 .frame(width: 34, height: 34)
-                .foregroundStyle(Color(uiColor: .systemBackground))
-                .background(Color.primary, in: Circle())
+                .foregroundStyle(.white)
+                .background(
+                    LinearGradient(colors: [Color.accentColor, Color.accentColor.opacity(0.78)],
+                                   startPoint: .top, endPoint: .bottom),
+                    in: Circle()
+                )
+                .shadow(color: Color.accentColor.opacity(0.35), radius: 8, x: 0, y: 3)
                 .frame(width: 44, height: 44).contentShape(Rectangle())
         }
         .disabled(!hasContent || !conversation.availability(.send).isEnabled || !attachmentsReady)

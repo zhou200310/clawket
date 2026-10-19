@@ -38,8 +38,15 @@ struct NativeMessageRow: View {
             .padding(message.author.isOutgoing ? 14 : 0)
             .background {
                 if message.author.isOutgoing {
-                    RoundedRectangle(cornerRadius: 23, style: .continuous)
-                        .fill(Color(uiColor: .secondarySystemBackground))
+                    RoundedRectangle(cornerRadius: NativeTheme.bubbleCorner, style: .continuous)
+                        .fill(Color.accentColor.opacity(0.16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: NativeTheme.bubbleCorner, style: .continuous)
+                                .strokeBorder(Color.accentColor.opacity(0.22), lineWidth: 0.5)
+                        )
+                } else {
+                    RoundedRectangle(cornerRadius: NativeTheme.bubbleCorner, style: .continuous)
+                        .fill(Color(uiColor: .secondarySystemBackground).opacity(0.55))
                 }
             }
             .frame(minWidth: 0, maxWidth: message.author.isOutgoing ? 650 : .infinity, alignment: .leading)

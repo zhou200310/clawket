@@ -35,7 +35,7 @@ struct NativeTranscript: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(parent: self) }
     func makeUIView(context: Context) -> TranscriptTableView {
         let table = TranscriptTableView(frame: .zero, style: .plain)
-        table.backgroundColor = .systemBackground
+        table.backgroundColor = .clear
         table.separatorStyle = .none
         table.allowsSelection = false
         table.keyboardDismissMode = .interactive

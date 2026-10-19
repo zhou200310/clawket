@@ -106,7 +106,7 @@ public struct NativeClientView: View {
         } else {
             ProgressView("Opening conversation…")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(uiColor: .systemBackground))
+                .background(Color.clear)
         }
     }
 
@@ -181,7 +181,8 @@ public struct NativeClientView: View {
                     .disabled(!agent.availability.isEnabled && !agent.requiresUpgrade)
                     .accessibilityIdentifier("agent-\(agent.id)")
                     .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 11, leading: 20, bottom: 11, trailing: 20))
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
                 }
                 if filteredAgents.isEmpty {
                     Text("No matching agents or conversations")
@@ -191,6 +192,8 @@ public struct NativeClientView: View {
             }
         }
         .listStyle(.plain)
+        .compatHiddenScrollBackground()
+        .background(NativeCanvas(accent: model.appearance.accentColor))
         .navigationTitle(model.title)
         .searchable(text: $search, prompt: "Search agents and conversations")
         .toolbar {
@@ -342,7 +345,10 @@ private struct AgentRow: View {
                 Circle().fill(Color.accentColor).frame(width: 8, height: 8).padding(.top, 7)
             }
         }
-        .padding(.vertical, 2)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .nativeCard()
+        .contentShape(RoundedRectangle(cornerRadius: NativeTheme.cardCorner, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityValue([agent.backendLabel, agent.timeLabel, agent.unread ? String(localized: "Unread messages") : nil,
                              agent.attention == .approval ? String(localized: "Approval needed") : nil,
@@ -354,13 +360,14 @@ private struct AgentRow: View {
         ZStack(alignment: .bottomTrailing) {
             ZStack {
                 RoundedRectangle(cornerRadius: agent.kind == .agent ? 19 : 14, style: .continuous)
-                    .fill(Color(uiColor: .secondarySystemBackground))
+                    .fill(LinearGradient(colors: [Color.accentColor.opacity(0.85), Color.accentColor.opacity(0.55)],
+                                         startPoint: .topLeading, endPoint: .bottomTrailing))
                 if let data = agent.avatarData, let image = UIImage(data: data) {
                     Image(uiImage: image).resizable().scaledToFill()
                 } else if let symbol = agent.symbol {
                     Image(systemName: symbol).font(.title2.weight(.medium)).foregroundStyle(.secondary)
                 } else if !agent.initials.isEmpty {
-                    Text(agent.initials).font(.title3.weight(.semibold)).foregroundStyle(.primary)
+                    Text(agent.initials).font(.title3.weight(.semibold)).foregroundStyle(.white)
                 } else {
                     ClawketMark().padding(11)
                 }
@@ -392,7 +399,6 @@ struct WelcomeContent: View {
         }
         .padding(.horizontal, 30).frame(maxWidth: 400)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(uiColor: .systemBackground))
     }
 }
 
@@ -523,7 +529,7 @@ struct NativeConversationView: View {
             .onPreferenceChange(NativeConversationAccessoryHeightKey.self) { accessoryHeight = $0 }
             .toolbar { conversationToolbar(toolbarWork: toolbarWork) }
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(NativeCanvas(accent: model.appearance.accentColor))
         .onAppear {
             onIntent(.conversationVisibilityChanged(conversation.id, viewID: visibilityID, visible: true))
             reportReadingVisibility(canRead)
