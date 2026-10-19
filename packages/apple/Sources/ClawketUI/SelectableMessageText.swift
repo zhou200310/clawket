@@ -90,6 +90,16 @@ private final class ReadingTextView: UITextView {
     override var intrinsicContentSize: CGSize {
         CGSize(width: UIView.noIntrinsicMetric, height: super.intrinsicContentSize.height)
     }
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // Before iOS 16 SwiftUI does not call sizeThatFits(_:uiView:context:),
+        // so the text view has to learn its own wrapping width instead.
+        let width = bounds.width
+        if !isScrollEnabled, width.isFinite, width > 1, abs(preferredMaxLayoutWidth - width) > 0.5 {
+            preferredMaxLayoutWidth = width
+            invalidateIntrinsicContentSize()
+        }
+    }
     override func accessibilityElementDidBecomeFocused() {
         super.accessibilityElementDidBecomeFocused()
         onReadingInteraction?()

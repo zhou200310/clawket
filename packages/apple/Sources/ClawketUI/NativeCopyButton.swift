@@ -145,11 +145,13 @@ fileprivate final class CopyFeedbackButton: UIButton {
     private func reservedSize(width: CGFloat) -> CGSize {
         let titles = [copyTitle, copiedTitle], font = copyFont
         let natural = titles.map { ($0 as NSString).size(withAttributes: [.font: font]).width }.max() ?? 0
-        let width = max(44, min(width, ceil(natural) + 16))
-        let height = titles.map {
-            ($0 as NSString).boundingRect(with: CGSize(width: max(1, width - 16), height: .greatestFiniteMagnitude),
+        let limit = width.isFinite ? width : CGFloat.greatestFiniteMagnitude
+        let width = max(44, min(max(1, limit), ceil(natural) + 16))
+        var height = titles.map {
+            ($0 as NSString).boundingRect(with: CGSize(width: max(1, width - 16), height: 10_000),
                 options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: [.font: font], context: nil).height
         }.max() ?? 0
+        if !height.isFinite { height = font.lineHeight }
         return CGSize(width: width, height: max(44, ceil(height)))
     }
 }

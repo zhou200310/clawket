@@ -356,9 +356,18 @@ final class HostingMessageCell: UITableViewCell {
                                                  verticalFittingPriority: verticalFittingPriority)
         }
         let margins = contentView.directionalLayoutMargins
-        let width = max(1, targetSize.width - margins.leading - margins.trailing)
-        let fitting = host.sizeThatFits(in: CGSize(width: width, height: .greatestFiniteMagnitude))
-        return CGSize(width: targetSize.width, height: fitting.height + margins.top + margins.bottom)
+        // UITableView sometimes measures with an unbounded width. Feeding an
+        // infinite value into SwiftUI produces NaN heights, and a NaN cell
+        // height makes UIKit throw while resetting its layout constraints.
+        var cellWidth = targetSize.width
+        if !cellWidth.isFinite || cellWidth < 1 { cellWidth = bounds.width }
+        if !cellWidth.isFinite || cellWidth < 1 { cellWidth = UIScreen.main.bounds.width }
+        let width = max(1, cellWidth - margins.leading - margins.trailing)
+        let fitting = host.sizeThatFits(in: CGSize(width: width, height: 10_000))
+        var height = fitting.height
+        if !height.isFinite || height < 0 { height = 0 }
+        height = min(height, 10_000)
+        return CGSize(width: cellWidth, height: ceil(height) + margins.top + margins.bottom)
     }
 }
 
