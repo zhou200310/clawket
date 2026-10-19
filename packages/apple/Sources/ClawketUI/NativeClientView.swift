@@ -161,8 +161,11 @@ public struct NativeClientView: View {
                                 } destination: {
                                     conversationDestination(route)
                                         .onAppear {
-                                            model.selectedConversation = route
-                                            onIntent(.openConversation(route))
+                                            // Selection alone drives loading via onChange above;
+                                            // calling openConversation too would load twice.
+                                            if model.selectedConversation != route {
+                                                model.selectedConversation = route
+                                            }
                                         }
                                 }
                             }
