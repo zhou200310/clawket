@@ -97,7 +97,8 @@ struct NativeWorkInspector: View {
                     }
                     ForEach(work.newestFirstRecords) { record in
                         Section {
-                            WorkRunHeader(record: record)
+                            WorkRunHeader(record: record,
+                                          fallbackInput: workInputFallback(record, model: model, conversationID: conversationID))
                             ForEach(record.newestFirstSteps) { step in
                                 if step.inspect.isVisible {
                                     CompatNavigationLink(value: WorkStepRoute(recordID: record.id, stepID: step.id)) {
@@ -134,6 +135,24 @@ struct NativeWorkInspector: View {
         }
         .accessibilityIdentifier("work-inspector")
     }
+}
+
+
+/// Backends often ship a run without its prompt. When the lineage still names
+/// the input message, show that message instead of "Unattributed work".
+@MainActor
+private func workInputFallback(_ record: WorkRunPresentation, model: ClientPresentation,
+                               conversationID: ConversationID) -> String? {
+    guard record.inputPreview == nil, record.title == nil,
+          let id = record.lineage.inputMessageID,
+          let message = model.conversations[conversationID]?.messages.first(where: { $0.id == id }) else { return nil }
+    for content in message.content {
+        if case let .markdown(text) = content {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
+        }
+    }
+    return nil
 }
 
 private struct WorkStepRoute: Hashable {
@@ -173,7 +192,10 @@ private struct NativeWorkStepDetail: View {
                             if let detail = step.detail { Text(detail).font(.body) }
                             WorkClockView(clock: step.clock)
                         }
-                        if let record { WorkRunHeader(record: record) }
+                        if let record {
+                            WorkRunHeader(record: record,
+                                          fallbackInput: workInputFallback(record, model: model, conversationID: conversationID))
+                        }
                         if step.isLoading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel("Loading work details…") }
                         ForEach(step.visibleContent) { section in
                             WorkContentSectionView(section: section)
@@ -207,11 +229,13 @@ private struct NativeWorkStepDetail: View {
 @MainActor
 private struct WorkRunHeader: View {
     let record: WorkRunPresentation
+    var fallbackInput: String? = nil
+    private var input: String? { record.inputPreview ?? fallbackInput }
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
-            Text(record.title ?? (record.inputPreview == nil ? String(localized: "Unattributed work") : String(localized: "Message")))
+            Text(record.title ?? (input == nil ? String(localized: "Unattributed work") : String(localized: "Message")))
                 .font(.subheadline.weight(.semibold))
-            if let input = record.inputPreview {
+            if let input {
                 Text(input).font(.subheadline).foregroundStyle(.secondary)
                     .lineLimit(3)
                     .accessibilityLabel(Text("Request: \(input)"))
