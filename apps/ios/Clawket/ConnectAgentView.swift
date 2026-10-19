@@ -62,9 +62,15 @@ struct ConnectAgentView: View {
                     case .qr:
                         Button { scanner = true } label: { Label("Scan QR code", systemImage: "qrcode.viewfinder") }
                             .accessibilityIdentifier("scan-pairing-qr")
-                        TextField("Paste pairing QR text or link", text: $raw, axis: .vertical)
-                            .lineLimit(3...6).textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .accessibilityIdentifier("pairing-payload")
+                        if #available(iOS 16.0, macOS 13.0, *) {
+                            TextField("Paste pairing QR text or link", text: $raw, axis: .vertical)
+                                .lineLimit(3...6).textInputAutocapitalization(.never).autocorrectionDisabled()
+                                .accessibilityIdentifier("pairing-payload")
+                        } else {
+                            TextField("Paste pairing QR text or link", text: $raw)
+                                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                                .accessibilityIdentifier("pairing-payload")
+                        }
                     case .direct:
                         TextField("Address", text: $address).keyboardType(.URL)
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
