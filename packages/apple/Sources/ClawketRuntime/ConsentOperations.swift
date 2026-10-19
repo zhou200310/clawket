@@ -232,8 +232,13 @@ extension RuntimeCoordinator {
     func unsupportedConsentRead(_ error: RPCFailure, method: String) -> Bool {
         let code = error.remoteError?["code"]?.stringValue?.uppercased() ?? ""
         if ["METHOD_NOT_FOUND", "UNKNOWN_METHOD", "UNSUPPORTED_METHOD", "NOT_IMPLEMENTED"].contains(code) { return true }
+        // A paired device may be approved without every optional discovery scope
+        // (for example `operator.pairing`). Treat that rejection as "this route is
+        // unavailable here" instead of failing the whole pending-request refresh.
+        if ["MISSING_SCOPE", "INSUFFICIENT_SCOPE", "SCOPE_REQUIRED", "FORBIDDEN"].contains(code) { return true }
         // Closed SDK messages preserve compatibility with Bridges that use backend error codes.
         let message = error.remoteError?["message"]?.stringValue ?? ""
+        if message.lowercased().contains("missing scope") { return true }
         return ["Unsupported Claude method", "Unsupported Pi operation", "Unsupported Codex operation",
                 "Unsupported Hermes bridge method: \(method)"].contains(message)
     }

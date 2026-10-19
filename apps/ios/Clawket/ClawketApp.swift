@@ -1,9 +1,16 @@
 import ClawketUI
 import SwiftUI
+import UIKit
 
 @main
 struct ClawketApp: App {
     @StateObject private var client = NativeAppModel()
+
+    init() {
+        // iOS 15 renders List on UITableView; keep its backdrop transparent so the
+        // shared canvas shows through instead of an opaque systemBackground slab.
+        UITableView.appearance().backgroundColor = .clear
+    }
     @Environment(\.scenePhase) private var phase
 
     var body: some Scene {

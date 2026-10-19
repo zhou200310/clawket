@@ -35,7 +35,7 @@ struct NativeMessageRow: View {
                 }
                 delivery
             }
-            .padding(message.author.isOutgoing ? 14 : 0)
+            .padding(14)
             .background {
                 if message.author.isOutgoing {
                     RoundedRectangle(cornerRadius: NativeTheme.bubbleCorner, style: .continuous)
@@ -49,7 +49,8 @@ struct NativeMessageRow: View {
                         .fill(Color(uiColor: .secondarySystemBackground).opacity(0.55))
                 }
             }
-            .frame(minWidth: 0, maxWidth: message.author.isOutgoing ? 650 : .infinity, alignment: .leading)
+            .frame(minWidth: 0, maxWidth: 650, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: message.author.isOutgoing ? .trailing : .leading)
             if !message.author.isOutgoing { Spacer(minLength: 0) }
         }
         .frame(minWidth: 0, maxWidth: 760)
